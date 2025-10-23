@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: self-hosted   # Use self-hosted runner with Docker installed
+    runs-on: ubuntu-latest   # Use GitHub-hosted runner with Docker, Maven, Java pre-installed
     steps:
       # Step 1: Checkout the triggered repository
       - name: Checkout triggered repository
@@ -23,8 +23,8 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # Step 3: Build project using Maven
-      - name: Build using Maven (skip tests)
+      # Step 3: Build project using Maven (skip tests)
+      - name: Build using Maven
         run: mvn clean package -DskipTests
 
       # Step 4: Log in to Docker Hub
@@ -38,13 +38,15 @@ jobs:
       - name: Build & Push Docker Image using Jib
         run: mvn jib:build -DskipTests
 
-      # Step 6: Pull latest images & start containers
+      # Step 6: Optional — Pull latest images & start containers
+      # Note: GitHub-hosted runners are ephemeral; containers disappear after workflow finishes.
       - name: Pull latest images & start containers
         run: |
-          cd /path/to/centralized/repo   # <-- Replace with actual path on your runner
-          docker-compose pull
-          docker-compose up -d --remove-orphans
+          echo "If you need persistent containers, run docker-compose locally on your machine."
+          # cd /path/to/centralized/repo
+          # docker-compose pull
+          # docker-compose up -d --remove-orphans
 
       # Step 7: Completion message
       - name: Done
-        run: echo "✅ Built, pushed, and deployed ${{ github.event.client_payload.repo }}"
+        run: echo "✅ Built and pushed Docker image for ${{ github.event.client_payload.repo }}"
