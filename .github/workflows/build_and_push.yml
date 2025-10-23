@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest   # Use GitHub-hosted runner with Docker, Maven, Java pre-installed
+    runs-on: self-hosted   # Use GitHub-hosted runner with Docker, Maven, Java pre-installed
     steps:
       # Step 1: Checkout the triggered repository
       - name: Checkout triggered repository
