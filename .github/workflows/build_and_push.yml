@@ -43,9 +43,9 @@ jobs:
       - name: Pull latest images & restart containers
         run: |
           echo "If you need persistent containers, run docker-compose locally on your machine."
-          cd C:/Users/Admin/Downloads
-          docker-compose pull
-          docker-compose up -d --remove-orphans
+          # cd C:/Users/Admin/Downloads
+          # docker-compose pull
+          # docker-compose up -d --remove-orphans
 
       # Step 7: Completion message
       - name: Done
