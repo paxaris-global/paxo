@@ -60,6 +60,8 @@ services:
     depends_on:
       mysql-db:
         condition: service_healthy
+      keycloak-server:
+        condition: service_healthy
     networks:
       - springnet
     healthcheck:
@@ -107,6 +109,10 @@ services:
     ports:
       - "8085:8080"
     depends_on:
+      mysql-db:
+        condition: service_healthy
+      keycloak-server:
+        condition: service_healthy
       project-manager:
         condition: service_healthy
       identity-service:
