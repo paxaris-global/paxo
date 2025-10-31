@@ -21,7 +21,7 @@ services:
       interval: 10s
       retries: 5
       timeout: 5s
-      start_period: 20s
+      start_period: 60s  # Increased start period for MySQL
 
   # -----------------------------
   # Keycloak Server
@@ -44,7 +44,7 @@ services:
       interval: 15s
       retries: 10
       timeout: 10s
-      start_period: 90s
+      start_period: 120s  # Increased start period for Keycloak
 
   # -----------------------------
   # Project Manager Service
@@ -62,6 +62,8 @@ services:
         condition: service_healthy
       keycloak-server:
         condition: service_healthy
+      identity-service:
+        condition: service_healthy
     networks:
       - springnet
     healthcheck:
@@ -69,7 +71,7 @@ services:
       interval: 15s
       retries: 10
       timeout: 10s
-      start_period: 60s
+      start_period: 120s  # Increased start period for Project Manager
 
   # -----------------------------
   # Identity Service
@@ -89,8 +91,6 @@ services:
         condition: service_healthy
       keycloak-server:
         condition: service_healthy
-      project-manager:
-        condition: service_healthy
     networks:
       - springnet
     healthcheck:
@@ -98,7 +98,7 @@ services:
       interval: 15s
       retries: 10
       timeout: 10s
-      start_period: 60s
+      start_period: 120s  # Increased start period for Identity Service
 
   # -----------------------------
   # API Gateway
@@ -121,7 +121,7 @@ services:
       - springnet
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8085 || exit 1"]  # Check API Gateway's own port
       interval: 15s
       retries: 10
       timeout: 10s
