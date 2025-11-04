@@ -124,7 +124,7 @@ services:
       start_period: 60s
 
 # -----------------------------
-# Networks & Volumes
+# Network & Volumes
 # -----------------------------
 networks:
   springnet:
