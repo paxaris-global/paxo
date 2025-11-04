@@ -11,11 +11,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: centralized_data
     ports:
-<<<<<<< HEAD
       - "3306:3306"
-=======
-      - "3306:3306"  # Default MySQL port
->>>>>>> 38b1bc2b39270ec8fb58d66b02b6cf018472c92f
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -25,11 +21,7 @@ services:
       interval: 10s
       retries: 5
       timeout: 5s
-<<<<<<< HEAD
       start_period: 120s
-=======
-      start_period: 120s  # More time for MySQL to start
->>>>>>> 38b1bc2b39270ec8fb58d66b02b6cf018472c92f
 
   # -----------------------------
   # Keycloak
@@ -52,17 +44,13 @@ services:
       interval: 15s
       retries: 10
       timeout: 10s
-<<<<<<< HEAD
       start_period: 120s
-=======
-      start_period: 120s  # More time for Keycloak to start
->>>>>>> 38b1bc2b39270ec8fb58d66b02b6cf018472c92f
 
   # -----------------------------
   # Project Manager
   # -----------------------------
   project-manager:
-    image: devopspaxarisglobal/project-manager:latest
+    image: devopspaxarisglobal/product-management-service:latest
     container_name: project-manager
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/centralized_data?allowPublicKeyRetrieval=true&useSSL=false
@@ -76,19 +64,11 @@ services:
     networks:
       - springnet
     healthcheck:
-<<<<<<< HEAD
       test: ["CMD-SHELL", "curl -f http://localhost:8088/actuator/health || exit 1"]
       interval: 15s
       retries: 10
       timeout: 10s
       start_period: 120s
-=======
-      test: ["CMD-SHELL", "curl -f http://project-manager:8088 || exit 1"]
-      interval: 15s
-      retries: 10
-      timeout: 10s
-      start_period: 120s  # More time for Project Manager to start
->>>>>>> 38b1bc2b39270ec8fb58d66b02b6cf018472c92f
 
   # -----------------------------
   # Identity Service
@@ -110,25 +90,17 @@ services:
     networks:
       - springnet
     healthcheck:
-<<<<<<< HEAD
       test: ["CMD-SHELL", "curl -f http://localhost:8087/actuator/health || exit 1"]
       interval: 15s
       retries: 10
       timeout: 10s
       start_period: 120s
-=======
-      test: ["CMD-SHELL", "curl -f http://identity-service:8087 || exit 1"]
-      interval: 15s
-      retries: 10
-      timeout: 10s
-      start_period: 120s  # More time for Identity Service to start
->>>>>>> 38b1bc2b39270ec8fb58d66b02b6cf018472c92f
 
   # -----------------------------
   # API Gateway
   # -----------------------------
   api-gateway:
-    image: devopspaxarisglobal/api-gateway:latest
+    image: devopspaxarisglobal/apigateway:latest
     container_name: api-gateway
     ports:
       - "8085:8085"
@@ -145,18 +117,14 @@ services:
       - springnet
     restart: unless-stopped
     healthcheck:
-<<<<<<< HEAD
       test: ["CMD-SHELL", "curl -f http://localhost:8085/actuator/health || exit 1"]
-=======
-      test: ["CMD-SHELL", "curl -f http://api-gateway:8085 || exit 1"]
->>>>>>> 38b1bc2b39270ec8fb58d66b02b6cf018472c92f
       interval: 15s
       retries: 10
       timeout: 10s
-      start_period: 60s  # More time for API Gateway to start
+      start_period: 60s
 
 # -----------------------------
-# Network & Volumes
+# Networks & Volumes
 # -----------------------------
 networks:
   springnet:
