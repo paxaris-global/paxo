@@ -17,11 +17,10 @@ services:
     networks:
       - springnet
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-uroot", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
-      retries: 5
       timeout: 5s
-      start_period: 120s
+      retries: 5
 
   # -----------------------------
   # Keycloak
@@ -39,36 +38,6 @@ services:
       - keycloak_data:/opt/keycloak/data
     networks:
       - springnet
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
-      interval: 15s
-      retries: 10
-      timeout: 10s
-      start_period: 120s
-
-  # -----------------------------
-  # Project Manager
-  # -----------------------------
-  project-manager:
-    image: devopspaxarisglobal/product-management-service:latest
-    container_name: project-manager
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/centralized_data?allowPublicKeyRetrieval=true&useSSL=false
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-    depends_on:
-      mysql-db:
-        condition: service_healthy
-      keycloak-server:
-        condition: service_healthy
-    networks:
-      - springnet
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8088/actuator/health || exit 1"]
-      interval: 15s
-      retries: 10
-      timeout: 10s
-      start_period: 120s
 
   # -----------------------------
   # Identity Service
@@ -80,17 +49,35 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/centralized_data?allowPublicKeyRetrieval=true&useSSL=false
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
-      KEYCLOAK_URL: http://keycloak-server:8080
+      KEYCLOAK_BASE_URL: http://keycloak-server:8080
+      PROJECT_MANAGER_URL: http://project-manager:8088
       KEYCLOAK_REALM: master
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin@123
     depends_on:
       mysql-db:
         condition: service_healthy
-      keycloak-server:
+    networks:
+      - springnet
+
+  # -----------------------------
+  # Project Manager
+  # -----------------------------
+  project-manager:
+    image: devopspaxarisglobal/product-management-service:latest
+    container_name: project-manager
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/centralized_data?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SERVER_PORT: 8088
+    depends_on:
+      mysql-db:
         condition: service_healthy
     networks:
       - springnet
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8087/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8088/actuator/health || exit 1"]
       interval: 15s
       retries: 10
       timeout: 10s
@@ -104,24 +91,17 @@ services:
     container_name: api-gateway
     ports:
       - "8085:8085"
+    environment:
+      PROJECT_MANAGEMENT_BASE_URL: http://project-manager:8088
     depends_on:
       mysql-db:
         condition: service_healthy
-      keycloak-server:
-        condition: service_healthy
       project-manager:
-        condition: service_healthy
-      identity-service:
         condition: service_healthy
     networks:
       - springnet
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8085/actuator/health || exit 1"]
-      interval: 15s
-      retries: 10
-      timeout: 10s
-      start_period: 60s
+
 
 # -----------------------------
 # Network & Volumes
