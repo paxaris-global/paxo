@@ -11,7 +11,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: centralized_data
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -28,10 +28,11 @@ services:
   keycloak-server:
     image: quay.io/keycloak/keycloak:26.2.0
     container_name: keycloak-server
-    command: ["start-dev"]
+    command: [ "start-dev", "--http-relative-path=/" ]
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin@123
+      KC_HOSTNAME: localhost       # Important: sets frontend URL for issuer
     ports:
       - "8080:8080"
     volumes:
@@ -39,12 +40,18 @@ services:
     networks:
       - springnet
 
-  # -----------------------------
+    # -----------------------------
   # Identity Service
   # -----------------------------
   identity-service:
+    build:
+      context: ../identity-service
     image: devopspaxarisglobal/identity-service:latest
     container_name: identity-service
+
+    ports:
+      - "8087:8087"
+
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/centralized_data?allowPublicKeyRetrieval=true&useSSL=false
       SPRING_DATASOURCE_USERNAME: root
@@ -54,13 +61,23 @@ services:
       KEYCLOAK_REALM: master
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin@123
+      DOCKER_USERNAME: ${DOCKER_USERNAME}
+      DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      GITHUB_ORG: ${GITHUB_ORG}
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock   # ✅ REQUIRED
+
     depends_on:
       mysql-db:
         condition: service_healthy
+
     networks:
       - springnet
 
-  # -----------------------------
+
+    # -----------------------------
   # Project Manager
   # -----------------------------
   project-manager:
@@ -71,6 +88,8 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
       SERVER_PORT: 8088
+    ports:
+        - "8088:8088"
     depends_on:
       mysql-db:
         condition: service_healthy
@@ -93,6 +112,8 @@ services:
       - "8085:8085"
     environment:
       PROJECT_MANAGEMENT_BASE_URL: http://project-manager:8088
+      IDENTITY_SERVICE_URL: http://identity-service:8087
+      KEYCLOAK_BASE_URL: http://keycloak-server:8080
     depends_on:
       mysql-db:
         condition: service_healthy
@@ -113,3 +134,5 @@ networks:
 volumes:
   mysql_data:
   keycloak_data:
+
+

@@ -6,9 +6,10 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest   # Use GitHub-hosted runner with Docker, Maven, Java pre-installed
+    runs-on: ubuntu-latest
+
     steps:
-      # Step 1: Checkout the triggered repository
+      # 1️⃣ Checkout triggered repo
       - name: Checkout triggered repository
         uses: actions/checkout@v4
         with:
@@ -16,37 +17,29 @@ jobs:
           ref: main
           token: ${{ secrets.GH_ACCESS_TOKEN }}
 
-      # Step 2: Set up Java 21
-      - name: Set up JDK 21
+      # 2️⃣ Java 21 + Maven cache (THIS SOLVES SLOW BUILDS)
+      - name: Set up JDK 21 with Maven cache
         uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: '21'
-          distribution: 'temurin'
+          cache: maven   # ✅ IMPORTANT
 
-      # Step 3: Build project using Maven (skip tests)
+      # 3️⃣ Build with Maven
       - name: Build using Maven
-        run: mvn clean package -DskipTests
+        run: mvn -B clean package -DskipTests
 
-      # Step 4: Log in to Docker Hub
+      # 4️⃣ Docker Hub Login
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      # Step 5: Build & Push Docker Image using Jib
-      - name: Build & Push Docker Image using Jib
-        run: mvn jib:build -DskipTests
+      # 5️⃣ Build & Push image using Jib
+      - name: Build & Push Docker Image (Jib)
+        run: mvn -B jib:build -DskipTests
 
-      # Step 6: Optional — Pull latest images & start containers
-      # Note: GitHub-hosted runners are ephemeral; containers disappear after workflow finishes.
-      - name: Pull latest images & restart containers
-        run: |
-          echo "If you need persistent containers, run docker-compose locally on your machine."
-          # cd C:/Users/Admin/Downloads
-          # docker-compose pull
-          # docker-compose up -d --remove-orphans
-
-      # Step 7: Completion message
+      # 6️⃣ Done
       - name: Done
-        run: echo "✅ Built and pushed Docker image for ${{ github.event.client_payload.repo }}"
+        run: echo "✅ Image built & pushed successfully"
