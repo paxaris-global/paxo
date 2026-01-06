@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout triggered repo
       - name: Checkout triggered repository
         uses: actions/checkout@v4
         with:
@@ -17,29 +16,21 @@ jobs:
           ref: main
           token: ${{ secrets.GH_ACCESS_TOKEN }}
 
-      # 2️⃣ Java 21 + Maven cache (THIS SOLVES SLOW BUILDS)
       - name: Set up JDK 21 with Maven cache
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
-          cache: maven   # ✅ IMPORTANT
+          cache: maven
 
-      # 3️⃣ Build with Maven
       - name: Build using Maven
         run: mvn -B clean package -DskipTests
 
-      # 4️⃣ Docker Hub Login
-      - name: Log in to Docker Hub
+      - name: Docker Hub Login
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      # 5️⃣ Build & Push image using Jib
-      - name: Build & Push Docker Image (Jib)
+      - name: Build & Push Image (Jib)
         run: mvn -B jib:build -DskipTests
-
-      # 6️⃣ Done
-      - name: Done
-        run: echo "✅ Image built & pushed successfully"
