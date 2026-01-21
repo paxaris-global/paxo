@@ -63,8 +63,10 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin@123
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-      GITHUB_TOKEN: ${GITHUB_TOKEN}
-      GITHUB_ORG: ${GITHUB_ORG}
+      GITHUB_TOKEN: dckr_pat_h-xwsBWn18NQ9ZXg3XRpxxWxwH0
+      # GITHUB_TOKEN: ${GITHUB_TOKEN}
+      # GITHUB_ORG: ${GITHUB_ORG}
+      GITHUB_ORG: PaxarisGlobal
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock   # ✅ REQUIRED
