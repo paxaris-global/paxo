@@ -63,10 +63,8 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin@123
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-      GITHUB_TOKEN: dckr_pat_h-xwsBWn18NQ9ZXg3XRpxxWxwH0
-      # GITHUB_TOKEN: ${GITHUB_TOKEN}
-      # GITHUB_ORG: ${GITHUB_ORG}
-      GITHUB_ORG: PaxarisGlobal
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      GITHUB_ORG: ${GITHUB_ORG}
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock   # ✅ REQUIRED
@@ -91,7 +89,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: root
       SERVER_PORT: 8088
     ports:
-        - "8088:8088"
+      - "8088:8088"
     depends_on:
       mysql-db:
         condition: service_healthy
@@ -126,6 +124,49 @@ services:
     restart: unless-stopped
 
 
+
+  # -----------------------------
+  # new created image from docker
+  # -----------------------------
+  test2-test2-test2:
+    image: devopspaxarisglobal/test2-test2-test2:latest
+    container_name: test2-test2-test2
+    ports:
+      - "8083:8083"
+    environment:
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_NAME: centralized_data
+      DB_USER: root
+      DB_PASSWORD: root
+      PORT: 8083
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - springnet
+    restart: unless-stopped
+
+# test1-ClientTracking-rohit:
+#     image: devopspaxarisglobal/test1-ClientTracking-rohit:latest
+#     container_name: test1-ClientTracking-rohit
+#     ports:
+#       - "8083:8083"
+#     environment:
+#       DB_HOST: mysql-db
+#       DB_PORT: 3306
+#       DB_NAME: centralized_data
+#       DB_USER: root
+#       DB_PASSWORD: root
+#       PORT: 8083
+#     depends_on:
+#       mysql-db:
+#         condition: service_healthy
+#     networks:
+#       - springnet
+#     restart: unless-stopped
+
+
 # -----------------------------
 # Network & Volumes
 # -----------------------------
@@ -136,5 +177,4 @@ networks:
 volumes:
   mysql_data:
   keycloak_data:
-
 
