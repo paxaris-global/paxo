@@ -13,6 +13,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.client_payload.repo }}
+#          ref: Vipul/code_updations
           ref: ${{ github.event.client_payload.ref }}
           token: ${{ secrets.GH_ACCESS_TOKEN }}
 
@@ -33,10 +34,4 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Build & Push Image (Jib)
-        # Passing credentials directly to Jib to bypass rate limits
-        run: |
-          mvn -B jib:build -DskipTests \
-            -Djib.from.auth.username=${{ secrets.DOCKER_HUB_USERNAME }} \
-            -Djib.from.auth.password=${{ secrets.DOCKER_HUB_TOKEN }} \
-            -Djib.to.auth.username=${{ secrets.DOCKER_HUB_USERNAME }} \
-            -Djib.to.auth.password=${{ secrets.DOCKER_HUB_TOKEN }}
+        run: mvn -B jib:build -DskipTests
