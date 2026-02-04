@@ -46,7 +46,7 @@ services:
   identity-service:
     build:
       context: ../identity-service
-    image: devopspaxarisglobal/identity-service:latest
+    image: devopspaxarisglobalrepo/identity-service:latest
     container_name: identity-service
 
     ports:
@@ -81,7 +81,7 @@ services:
   # Project Manager
   # -----------------------------
   project-manager:
-    image: devopspaxarisglobal/product-management-service:latest
+    image: devopspaxarisglobalrepo/product-management-service:latest
     container_name: project-manager
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/centralized_data?createDatabaseIfNotExist=true
@@ -106,7 +106,7 @@ services:
   # API Gateway
   # -----------------------------
   api-gateway:
-    image: devopspaxarisglobal/apigateway:latest
+    image: devopspaxarisglobalrepo/apigateway:latest
     container_name: api-gateway
     ports:
       - "8085:8085"
@@ -128,27 +128,27 @@ services:
   # -----------------------------
   # new created image from docker
   # -----------------------------
-  test2-test2-test2:
-    image: devopspaxarisglobal/test2-test2-test2:latest
-    container_name: test2-test2-test2
-    ports:
-      - "8083:8083"
-    environment:
-      DB_HOST: mysql-db
-      DB_PORT: 3306
-      DB_NAME: centralized_data
-      DB_USER: root
-      DB_PASSWORD: root
-      PORT: 8083
-    depends_on:
-      mysql-db:
-        condition: service_healthy
-    networks:
-      - springnet
-    restart: unless-stopped
+#  test2-test2-test2:
+#    image: devopspaxarisglobalrepo/test2-test2-test2:latest
+#    container_name: test2-test2-test2
+#    ports:
+#      - "8083:8083"
+#    environment:
+#      DB_HOST: mysql-db
+#      DB_PORT: 3306
+#      DB_NAME: centralized_data
+#      DB_USER: root
+#      DB_PASSWORD: root
+#      PORT: 8083
+#    depends_on:
+#      mysql-db:
+#        condition: service_healthy
+#    networks:
+#      - springnet
+#    restart: unless-stopped
 
 # test1-ClientTracking-rohit:
-#     image: devopspaxarisglobal/test1-ClientTracking-rohit:latest
+#     image: devopspaxarisglobalrepo/test1-ClientTracking-rohit:latest
 #     container_name: test1-ClientTracking-rohit
 #     ports:
 #       - "8083:8083"
