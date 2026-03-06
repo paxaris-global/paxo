@@ -124,28 +124,49 @@ services:
     restart: unless-stopped
 
 
+  # -----------------------------
+  # Angular Frontend
+  # -----------------------------
+  paxo-frontend:
+    image: devopspaxarisglobalrepo/paxo_frontend:latest
+    container_name: paxo-frontend
+    ports:
+      - "4200:80"
+
+    environment:
+      DOCKER_USERNAME: ${DOCKER_USERNAME}
+      DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+
+    depends_on:
+      - api-gateway
+    networks:
+      - springnet
+    restart: unless-stopped
+
+
+
 
   # -----------------------------
   # new created image from docker
   # -----------------------------
-#  test2-test2-test2:
-#    image: devopspaxarisglobalrepo/test2-test2-test2:latest
-#    container_name: test2-test2-test2
-#    ports:
-#      - "8083:8083"
-#    environment:
-#      DB_HOST: mysql-db
-#      DB_PORT: 3306
-#      DB_NAME: centralized_data
-#      DB_USER: root
-#      DB_PASSWORD: root
-#      PORT: 8083
-#    depends_on:
-#      mysql-db:
-#        condition: service_healthy
-#    networks:
-#      - springnet
-#    restart: unless-stopped
+  paxarisglobal-admin-producttest1:
+   image: devopspaxarisglobalrepo/paxarisglobal-admin-producttest1:latest
+   container_name: paxarisglobal-admin-producttest1
+   ports:
+     - "8083:8083"
+   environment:
+     DB_HOST: mysql-db
+     DB_PORT: 3306
+     DB_NAME: centralized_data
+     DB_USER: root
+     DB_PASSWORD: root
+     PORT: 8083
+   depends_on:
+     mysql-db:
+       condition: service_healthy
+   networks:
+     - springnet
+   restart: unless-stopped
 
 # test1-ClientTracking-rohit:
 #     image: devopspaxarisglobalrepo/test1-ClientTracking-rohit:latest

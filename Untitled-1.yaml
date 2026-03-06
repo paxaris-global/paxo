@@ -1,0 +1,21 @@
+  # -----------------------------
+  # new created image from docker
+  # -----------------------------
+  vipultest12-vipultest1-vipultest12:
+    image: devopspaxarisglobal/vipultest12-vipultest1-vipultest12:latest
+    container_name: vipultest12-vipultest1-vipultest12
+    ports:
+      - "3001:3000"   # host:container to avoid port conflicts
+    environment:
+      DB_HOST: mysql-db
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: centralized_data
+      DB_PORT: 3306
+      PORT: 3000
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - springnet
+    restart: unless-stopped
