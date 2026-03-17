@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # -----------------------------
   # MySQL
@@ -8,7 +6,7 @@ services:
     image: mysql:8.0
     container_name: mysql-db
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
       MYSQL_DATABASE: centralized_data
     ports:
       - "3307:3306"
@@ -20,7 +18,8 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 20
+      start_period: 120s
 
   # -----------------------------
   # Keycloak
@@ -30,8 +29,8 @@ services:
     container_name: keycloak-server
     command: [ "start-dev", "--http-relative-path=/" ]
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin@123
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin@123}
       KC_HOSTNAME: localhost       # Important: sets frontend URL for issuer
     ports:
       - "8080:8080"
@@ -40,12 +39,27 @@ services:
     networks:
       - springnet
 
+  # -----------------------------
+  # OpenTelemetry Backend (Jaeger)
+  # -----------------------------
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    container_name: jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    networks:
+      - springnet
+
     # -----------------------------
   # Identity Service
   # -----------------------------
   identity-service:
     build:
-      context: ../identity-service
+      context: ../identity_service
     image: devopspaxarisglobalrepo/identity-service:latest
     container_name: identity-service
 
@@ -54,17 +68,18 @@ services:
 
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/centralized_data?allowPublicKeyRetrieval=true&useSSL=false
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-root}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-root}
       KEYCLOAK_BASE_URL: http://keycloak-server:8080
       PROJECT_MANAGER_URL: http://project-manager:8088
       KEYCLOAK_REALM: master
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin@123
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin@123}
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
       GITHUB_TOKEN: ${GITHUB_TOKEN}
       GITHUB_ORG: ${GITHUB_ORG}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318/v1/traces
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock   # ✅ REQUIRED
@@ -72,6 +87,8 @@ services:
     depends_on:
       mysql-db:
         condition: service_healthy
+      jaeger:
+        condition: service_started
 
     networks:
       - springnet
@@ -81,18 +98,26 @@ services:
   # Project Manager
   # -----------------------------
   project-manager:
+    build:
+      context: ../product-management-service
+      dockerfile: Dockerfile
     image: devopspaxarisglobalrepo/product-management-service:latest
     container_name: project-manager
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/centralized_data?createDatabaseIfNotExist=true
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-root}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-root}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      GITHUB_ORG: ${GITHUB_ORG}
       SERVER_PORT: 8088
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318/v1/traces
     ports:
-      - "8088:8088"
+        - "8088:8088"
     depends_on:
       mysql-db:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     networks:
       - springnet
     healthcheck:
@@ -106,6 +131,9 @@ services:
   # API Gateway
   # -----------------------------
   api-gateway:
+    build:
+      context: ../api-gateway
+      dockerfile: Dockerfile
     image: devopspaxarisglobalrepo/apigateway:latest
     container_name: api-gateway
     ports:
@@ -114,14 +142,19 @@ services:
       PROJECT_MANAGEMENT_BASE_URL: http://project-manager:8088
       IDENTITY_SERVICE_URL: http://identity-service:8087
       KEYCLOAK_BASE_URL: http://keycloak-server:8080
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318/v1/traces
     depends_on:
       mysql-db:
         condition: service_healthy
       project-manager:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     networks:
       - springnet
     restart: unless-stopped
+
+
 
 
   # -----------------------------
@@ -132,11 +165,6 @@ services:
     container_name: paxo-frontend
     ports:
       - "4200:80"
-
-    environment:
-      DOCKER_USERNAME: ${DOCKER_USERNAME}
-      DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-
     depends_on:
       - api-gateway
     networks:
@@ -149,24 +177,24 @@ services:
   # -----------------------------
   # new created image from docker
   # -----------------------------
-  paxarisglobal-admin-producttest1:
-   image: devopspaxarisglobalrepo/paxarisglobal-admin-producttest1:latest
-   container_name: paxarisglobal-admin-producttest1
-   ports:
-     - "8083:8083"
-   environment:
-     DB_HOST: mysql-db
-     DB_PORT: 3306
-     DB_NAME: centralized_data
-     DB_USER: root
-     DB_PASSWORD: root
-     PORT: 8083
-   depends_on:
-     mysql-db:
-       condition: service_healthy
-   networks:
-     - springnet
-   restart: unless-stopped
+#  paxarisglobal-admin-producttest1:
+#   image: devopspaxarisglobalrepo/paxarisglobal-admin-producttest1:latest
+#   container_name: paxarisglobal-admin-producttest1
+#   ports:
+#     - "8083:8083"
+#   environment:
+#     DB_HOST: mysql-db
+#     DB_PORT: 3306
+#     DB_NAME: centralized_data
+#     DB_USER: root
+#     DB_PASSWORD: root
+#     PORT: 8083
+#   depends_on:
+#     mysql-db:
+#       condition: service_healthy
+#   networks:
+#     - springnet
+#   restart: unless-stopped
 
 # test1-ClientTracking-rohit:
 #     image: devopspaxarisglobalrepo/test1-ClientTracking-rohit:latest

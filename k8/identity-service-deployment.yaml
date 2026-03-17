@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-service
+spec:
+  selector:
+    matchLabels:
+      app: identity-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: identity-service
+    spec:
+      containers:
+        - name: identity-service
+          image: devopspaxarisglobalrepo/identity-service:latest
+          ports:
+            - containerPort: 8087
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql:3306/centralized_data?allowPublicKeyRetrieval=true&useSSL=false
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: root
+            - name: KEYCLOAK_BASE_URL
+              value: http://keycloak:8080
+            - name: PROJECT_MANAGER_URL
+              value: http://product-management-service:8088
+            - name: KEYCLOAK_REALM
+              value: master
+            - name: KEYCLOAK_ADMIN
+              value: admin
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: admin@123
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://jaeger:4318/v1/traces
+          volumeMounts:
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+      volumes:
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-service
+spec:
+  selector:
+    app: identity-service
+  ports:
+    - port: 8087
+      targetPort: 8087
+      nodePort: 32087
+  type: NodePort

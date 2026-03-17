@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-management-service
+spec:
+  selector:
+    matchLabels:
+      app: product-management-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: product-management-service
+    spec:
+      containers:
+        - name: product-management-service
+          image: devopspaxarisglobalrepo/product-management-service:latest
+          ports:
+            - containerPort: 8088
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql:3306/centralized_data?createDatabaseIfNotExist=true
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: root
+            - name: SERVER_PORT
+              value: "8088"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://jaeger:4318/v1/traces
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-management-service
+spec:
+  selector:
+    app: product-management-service
+  ports:
+    - port: 8088
+      targetPort: 8088
+      nodePort: 32088
+  type: NodePort
