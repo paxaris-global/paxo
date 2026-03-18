@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: devopspaxarisglobalrepo/apigateway:v1.1.1
+          image: devopspaxarisglobalrepo/apigateway:v1.1.2
           ports:
             - containerPort: 8085
           env:

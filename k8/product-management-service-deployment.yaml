@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: product-management-service
-          image: devopspaxarisglobalrepo/product-management-service:v1.1.1
+          image: devopspaxarisglobalrepo/product-management-service:v1.1.2
           ports:
             - containerPort: 8088
           env:
