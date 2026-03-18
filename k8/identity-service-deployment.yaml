@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: identity-service
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: devopspaxarisglobalrepo/identity-service
+    argocd-image-updater.argoproj.io/identity-service.update-strategy: latest
 spec:
   selector:
     matchLabels:
@@ -14,7 +17,8 @@ spec:
     spec:
       containers:
         - name: identity-service
-          image: devopspaxarisglobalrepo/identity-service:v1.1.2
+          image: devopspaxarisglobalrepo/identity-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8087
           env:
@@ -25,7 +29,7 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               value: root
             - name: KEYCLOAK_BASE_URL
-              value: http://keycloak-server:8080
+              value: http://keycloak:8080
             - name: PROJECT_MANAGER_URL
               value: http://product-management-service:8088
             - name: KEYCLOAK_REALM
