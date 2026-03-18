@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-gateway
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: devopspaxarisglobalrepo/apigateway
+    argocd-image-updater.argoproj.io/apigateway.update-strategy: latest
 spec:
   selector:
     matchLabels:
@@ -14,7 +17,8 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: devopspaxarisglobalrepo/apigateway:v1.1.2
+          image: devopspaxarisglobalrepo/apigateway:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8085
           env:
@@ -23,7 +27,7 @@ spec:
             - name: IDENTITY_SERVICE_URL
               value: http://identity-service:8087
             - name: KEYCLOAK_BASE_URL
-              value: http://keycloak-server:8080
+              value: http://keycloak:8080
 ---
 apiVersion: v1
 kind: Service
