@@ -19,7 +19,7 @@ spec:
             - containerPort: 8088
           env:
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://mysql:3306/centralized_data?createDatabaseIfNotExist=true
+              value: jdbc:mysql://mysql:3306/centralized_data?allowPublicKeyRetrieval=true&useSSL=false
             - name: SPRING_DATASOURCE_USERNAME
               value: root
             - name: SPRING_DATASOURCE_PASSWORD
