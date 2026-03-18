@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: identity-service
-          image: devopspaxarisglobalrepo/identity-service:latest
+          image: devopspaxarisglobalrepo/identity-service:v1.0.0
           ports:
             - containerPort: 8087
           env:
