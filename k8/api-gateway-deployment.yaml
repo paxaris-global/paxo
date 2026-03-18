@@ -23,7 +23,7 @@ spec:
             - name: IDENTITY_SERVICE_URL
               value: http://identity-service:8087
             - name: KEYCLOAK_BASE_URL
-              value: http://keycloak:8080
+              value: http://keycloak-server:8080
 ---
 apiVersion: v1
 kind: Service

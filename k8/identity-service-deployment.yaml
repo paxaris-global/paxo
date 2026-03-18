@@ -25,7 +25,7 @@ spec:
             - name: SPRING_DATASOURCE_PASSWORD
               value: root
             - name: KEYCLOAK_BASE_URL
-              value: http://keycloak:8080
+              value: http://keycloak-server:8080
             - name: PROJECT_MANAGER_URL
               value: http://product-management-service:8088
             - name: KEYCLOAK_REALM
