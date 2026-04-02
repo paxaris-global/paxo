@@ -28,7 +28,7 @@ spec:
               value: http://identity-service:8087
             - name: KEYCLOAK_BASE_URL
               value: http://keycloak:8080
----
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -41,3 +41,5 @@ spec:
       targetPort: 8085
       nodePort: 32085
   type: NodePort
+
+ 

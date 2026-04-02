@@ -40,6 +40,14 @@ spec:
               value: admin@123
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: http://jaeger:4318/v1/traces
+            - name: IDENTITY_JWT_ISSUER_HOST_REWRITE_TO
+              value: keycloak
+            - name: ALLOWED_ORIGINS
+              value: "*"
+            - name: ALLOWED_METHODS
+              value: "*"
+            - name: ALLOWED_HEADERS
+              value: "*"
           volumeMounts:
             - name: docker-sock
               mountPath: /var/run/docker.sock

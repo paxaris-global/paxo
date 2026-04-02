@@ -23,6 +23,16 @@ spec:
               value: "admin@123"
             - name: KC_HOSTNAME
               value: "localhost"
+            - name: KC_DB
+              value: "mysql"
+            - name: KC_DB_URL
+              value: "jdbc:mysql://mysql:3306/keycloak_db"
+            - name: KC_DB_USERNAME
+              value: "root"
+            - name: KC_DB_PASSWORD
+              value: "root"
+            - name: KC_DB_DRIVER
+              value: "com.mysql.cj.jdbc.Driver"
           ports:
             - containerPort: 8080
           volumeMounts:

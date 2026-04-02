@@ -20,17 +20,33 @@ spec:
               value: "root"
             - name: MYSQL_DATABASE
               value: "centralized_data"
+            - name: MYSQL_USER
+              value: "keycloak"
+            - name: MYSQL_PASSWORD
+              value: "keycloak"
           ports:
             - containerPort: 3306
           volumeMounts:
             - name: mysql-persistent-storage
               mountPath: /var/lib/mysql
+            - name: mysql-init
+              mountPath: /docker-entrypoint-initdb.d
       volumes:
         - name: mysql-persistent-storage
           emptyDir: {}
+        - name: mysql-init
+          configMap:
+            name: mysql-init-config
 ---
-# (your existing deployment above)
-
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-config
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS keycloak_db;
+    GRANT ALL PRIVILEGES ON keycloak_db.* TO 'keycloak'@'%' IDENTIFIED BY 'keycloak';
+    FLUSH PRIVILEGES;
 ---
 apiVersion: v1
 kind: Service
