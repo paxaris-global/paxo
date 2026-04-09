@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/paxaris-global' # Set this once to your repo
+    repoURL: 'https://github.com/paxaris-global/paxo.git'
     targetRevision: main
-    path: paxo/k8 # Path to your k8s manifests (update if needed)
+    path: k8
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: default # Or your target namespace
