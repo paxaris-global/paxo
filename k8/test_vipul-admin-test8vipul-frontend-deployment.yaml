@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-vipul-admin-test8vipul-frontend
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: devopspaxarisglobalrepo/test_vipul-admin-test8vipul-frontend
+    argocd-image-updater.argoproj.io/test_vipul-admin-test8vipul-frontend.update-strategy: latest
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: test-vipul-admin-test8vipul-frontend
+  template:
+    metadata:
+      labels:
+        app: test-vipul-admin-test8vipul-frontend
+    spec:
+      containers:
+        - name: test-vipul-admin-test8vipul-frontend
+          image: devopspaxarisglobalrepo/test_vipul-admin-test8vipul-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-vipul-admin-test8vipul-frontend
+spec:
+  selector:
+    app: test-vipul-admin-test8vipul-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP
