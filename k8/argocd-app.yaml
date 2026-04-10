@@ -9,6 +9,8 @@ spec:
     repoURL: 'https://github.com/paxaris-global/paxo.git'
     targetRevision: main
     path: k8
+    directory:
+      recurse: true
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: default # Or your target namespace
