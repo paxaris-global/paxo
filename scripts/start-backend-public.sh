@@ -80,14 +80,19 @@ else
   echo "Warning: $ENV_FILE not found; skipping GitHub env auto-config."
 fi
 
-for svc in paxo-frontend keycloak api-gateway identity-service product-management-service jaeger; do
+for svc in keycloak api-gateway identity-service product-management-service jaeger; do
   if ! kubectl get svc "$svc" >/dev/null 2>&1; then
     echo "Error: Kubernetes service '$svc' not found." >&2
     exit 1
   fi
 done
 
-echo "Starting full stack public access (frontend + backend microservices)..."
+FRONTEND_AVAILABLE=false
+if kubectl get svc paxo-frontend >/dev/null 2>&1; then
+  FRONTEND_AVAILABLE=true
+fi
+
+echo "Starting backend public access (gateway + microservices)..."
 echo "Syncing provisioning environment from .env (GitHub/Argo prerequisites)..."
 echo
 
@@ -100,8 +105,12 @@ pkill -f "kubectl port-forward svc/product-management-service" >/dev/null 2>&1 |
 pkill -f "kubectl port-forward svc/jaeger" >/dev/null 2>&1 || true
 pkill -f "ngrok" >/dev/null 2>&1 || true
 
-nohup kubectl port-forward svc/paxo-frontend 4200:80 >"$RUNTIME_DIR/frontend.log" 2>&1 &
-echo $! >"$RUNTIME_DIR/frontend.pid"
+if [[ "$FRONTEND_AVAILABLE" == "true" ]]; then
+  nohup kubectl port-forward svc/paxo-frontend 4200:80 >"$RUNTIME_DIR/frontend.log" 2>&1 &
+  echo $! >"$RUNTIME_DIR/frontend.pid"
+else
+  echo "Warning: Kubernetes service 'paxo-frontend' not found; skipping frontend port-forward."
+fi
 
 nohup kubectl port-forward svc/keycloak 8080:8080 >"$RUNTIME_DIR/keycloak.log" 2>&1 &
 echo $! >"$RUNTIME_DIR/keycloak.pid"
@@ -118,15 +127,21 @@ echo $! >"$RUNTIME_DIR/backend-product.pid"
 nohup kubectl port-forward svc/jaeger 16686:16686 >"$RUNTIME_DIR/jaeger.log" 2>&1 &
 echo $! >"$RUNTIME_DIR/jaeger.pid"
 
-if ! wait_for_port 4200 || ! wait_for_port 8080 || ! wait_for_port 8085 || ! wait_for_port 8087 || ! wait_for_port 8088 || ! wait_for_port 16686; then
+if ! wait_for_port 8080 || ! wait_for_port 8085 || ! wait_for_port 8087 || ! wait_for_port 8088 || ! wait_for_port 16686; then
   echo "Error: backend services did not open local ports in time." >&2
   exit 1
 fi
 
+if [[ "$FRONTEND_AVAILABLE" == "true" ]]; then
+  if ! wait_for_port 4200; then
+    echo "Warning: frontend port 4200 did not open; continuing with backend services only."
+  fi
+fi
+
 if [[ -f "$NGROK_PROJECT_CONFIG" ]]; then
-  nohup ngrok http 4200 --config "$NGROK_SYSTEM_CONFIG" --config "$NGROK_PROJECT_CONFIG" >"$RUNTIME_DIR/ngrok-backend.log" 2>&1 &
+  nohup ngrok http 8085 --config "$NGROK_SYSTEM_CONFIG" --config "$NGROK_PROJECT_CONFIG" >"$RUNTIME_DIR/ngrok-backend.log" 2>&1 &
 else
-  nohup ngrok http 4200 --config "$NGROK_SYSTEM_CONFIG" >"$RUNTIME_DIR/ngrok-backend.log" 2>&1 &
+  nohup ngrok http 8085 --config "$NGROK_SYSTEM_CONFIG" >"$RUNTIME_DIR/ngrok-backend.log" 2>&1 &
 fi
 echo $! >"$RUNTIME_DIR/ngrok-backend.pid"
 
@@ -145,19 +160,20 @@ if [[ -z "$PUBLIC_URL" ]]; then
 fi
 
 echo "=========================================="
-echo "FULL STACK PUBLIC ACCESS READY"
+echo "BACKEND PUBLIC ACCESS READY"
 echo "=========================================="
 echo
-echo "Public Base URL:        $PUBLIC_URL"
+echo "Public Gateway URL:     $PUBLIC_URL"
 echo
-echo "Frontend:               $PUBLIC_URL"
-echo "Gateway Health:         $PUBLIC_URL/gateway/actuator/health"
+echo "Gateway Health:         $PUBLIC_URL/actuator/health"
 echo "Identity Signup (POST): $PUBLIC_URL/identity/signup"
 echo "Identity Login:         $PUBLIC_URL/identity/{realm}/login"
 echo "Product Health:         $PUBLIC_URL/project/provision/health"
 echo
 echo "Direct Local (your Mac):"
-echo "Frontend:               http://127.0.0.1:4200"
+if [[ "$FRONTEND_AVAILABLE" == "true" ]]; then
+  echo "Frontend:               http://127.0.0.1:4200"
+fi
 echo "Keycloak:               http://127.0.0.1:8080"
 echo "API Gateway:            http://127.0.0.1:8085"
 echo "Identity Service:       http://127.0.0.1:8087"
