@@ -19,7 +19,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: product-management-service
-          image: devopspaxarisglobalrepo/product-management-service:b476b203d33847228486cbd3d76e872db5432b67
+          image: devopspaxarisglobalrepo/product-management-service:242f3dac10465860ed63d4d41220b426c1bc508f
           imagePullPolicy: Always
           ports:
             - containerPort: 8088
