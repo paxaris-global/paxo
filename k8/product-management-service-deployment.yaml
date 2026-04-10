@@ -15,6 +15,8 @@ spec:
       labels:
         app: product-management-service
     spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
       containers:
         - name: product-management-service
           image: devopspaxarisglobalrepo/product-management-service:latest
@@ -32,6 +34,26 @@ spec:
               value: "8088"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: http://jaeger:4318/v1/traces
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-credentials
+                  key: GITHUB_TOKEN
+            - name: GITHUB_ORG
+              valueFrom:
+                secretKeyRef:
+                  name: github-credentials
+                  key: GITHUB_ORG
+            - name: DOCKER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: github-credentials
+                  key: DOCKER_USERNAME
+            - name: DOCKER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: github-credentials
+                  key: DOCKER_PASSWORD
 ---
 apiVersion: v1
 kind: Service
