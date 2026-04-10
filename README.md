@@ -3,7 +3,7 @@
 ## Run full stack with ngrok
 
 Prerequisites:
-- Minikube is running and your workloads are deployed in Kubernetes.
+- Minikube is running and your workloads are deployed in Kubernete.
 - `kubectl` and `ngrok` are installed.
 - ngrok authtoken is configured (`ngrok config add-authtoken <token>`).
 
