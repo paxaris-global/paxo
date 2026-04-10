@@ -90,7 +90,12 @@ jobs:
 
       - name: Build & Push Image (Jib)
         if: ${{ steps.detect.outputs.project_type == 'maven' }}
-        run: mvn -B jib:build -DskipTests
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_TOKEN }}
+        run: |
+          IMAGE_SHA_TAG="${{ github.event.client_payload.sha || github.sha }}"
+          mvn -B jib:build -DskipTests -Djib.to.tags=latest,${IMAGE_SHA_TAG}
 
       - name: Set up Docker Buildx
         if: ${{ steps.detect.outputs.project_type == 'frontend' }}
@@ -106,6 +111,58 @@ jobs:
           tags: |
             ${{ steps.frontend-image.outputs.image_repo }}:latest
             ${{ steps.frontend-image.outputs.image_repo }}:${{ github.event.client_payload.sha || github.sha }}
+
+      - name: Update GitOps manifests in paxo
+        if: ${{ steps.detect.outputs.project_type == 'maven' || steps.detect.outputs.project_type == 'frontend' }}
+        env:
+          GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          REPO_FULL='${{ github.event.client_payload.repo }}'
+          IMAGE_SHA='${{ github.event.client_payload.sha || github.sha }}'
+
+          DEPLOYMENT_FILE=""
+          TARGET_IMAGE=""
+
+          case "$REPO_FULL" in
+            paxaris-global/api-gateway)
+              DEPLOYMENT_FILE="k8/api-gateway-deployment.yaml"
+              TARGET_IMAGE="devopspaxarisglobalrepo/apigateway:${IMAGE_SHA}"
+              ;;
+            paxaris-global/identity_service|paxaris-global/identity-service)
+              DEPLOYMENT_FILE="k8/identity-service-deployment.yaml"
+              TARGET_IMAGE="devopspaxarisglobalrepo/identity-service:${IMAGE_SHA}"
+              ;;
+            paxaris-global/product-management-service)
+              DEPLOYMENT_FILE="k8/product-management-service-deployment.yaml"
+              TARGET_IMAGE="devopspaxarisglobalrepo/product-management-service:${IMAGE_SHA}"
+              ;;
+            paxaris-global/paxo_frontend)
+              DEPLOYMENT_FILE="k8/paxo-frontend-deployment.yaml"
+              TARGET_IMAGE="devopspaxarisglobalrepo/paxo_frontend:${IMAGE_SHA}"
+              ;;
+            *)
+              echo "No GitOps deployment mapping configured for $REPO_FULL."
+              exit 0
+              ;;
+          esac
+
+          git clone "https://x-access-token:${GH_ACCESS_TOKEN}@github.com/paxaris-global/paxo.git" /tmp/paxo-gitops
+          cd /tmp/paxo-gitops
+
+          sed -i "s|^\([[:space:]]*image:[[:space:]]*\).*|\1${TARGET_IMAGE}|" "$DEPLOYMENT_FILE"
+
+          if git diff --quiet; then
+            echo "No manifest change detected."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEPLOYMENT_FILE"
+          git commit -m "ci: update image for ${REPO_FULL} to ${IMAGE_SHA}"
+          git push origin main
 
       - name: Unsupported repository type
         if: ${{ steps.detect.outputs.project_type == 'unknown' }}

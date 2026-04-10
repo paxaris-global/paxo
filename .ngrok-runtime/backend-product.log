@@ -1,0 +1,6 @@
+Forwarding from 127.0.0.1:8088 -> 8088
+Forwarding from [::1]:8088 -> 8088
+Handling connection for 8088
+Handling connection for 8088
+E0410 16:21:25.285041   87567 portforward.go:424] "Unhandled Error" err="an error occurred forwarding 8088 -> 8088: error forwarding port 8088 to pod ba9f516a294cff73fdb971e8b27f887a9fb5b86111d3241490b5afd9c5b12915, uid : Error response from daemon: No such container: ba9f516a294cff73fdb971e8b27f887a9fb5b86111d3241490b5afd9c5b12915"
+error: lost connection to pod

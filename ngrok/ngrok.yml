@@ -1,0 +1,9 @@
+version: 3
+agent:
+  # ngrok local API used by the helper script to print public URLs.
+  web_addr: 127.0.0.1:4040
+
+tunnels:
+  paxo-frontend:
+    proto: http
+    addr: 4200

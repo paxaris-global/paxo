@@ -2,7 +2,7 @@
   # new created image from docker
   # -----------------------------
   vipultest12-vipultest1-vipultest12:
-    image: devopspaxarisglobal/vipultest12-vipultest1-vipultest12:latest
+    image: devopspaxarisglobalrepo/vipultest12-vipultest1-vipultest12:latest
     container_name: vipultest12-vipultest1-vipultest12
     ports:
       - "3001:3000"   # host:container to avoid port conflicts

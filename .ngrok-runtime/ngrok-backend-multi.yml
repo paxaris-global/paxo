@@ -1,0 +1,13 @@
+version: 3
+agent:
+  web_addr: 127.0.0.1:4040
+tunnels:
+  api-gateway:
+    proto: http
+    addr: 8085
+  identity-service:
+    proto: http
+    addr: 8087
+  product-management-service:
+    proto: http
+    addr: 8088
