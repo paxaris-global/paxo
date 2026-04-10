@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: test-vipul-admin-test8vipul-frontend
-          image: devopspaxarisglobalrepo/test_vipul-admin-test8vipul-frontend:latest
+          image: devopspaxarisglobalrepo/test_vipul-admin-test8vipul-frontend-frontend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
