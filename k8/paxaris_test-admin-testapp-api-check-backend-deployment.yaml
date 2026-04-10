@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paxaris-test-admin-testapp-api-check-backend
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: devopspaxarisglobalrepo/paxaris_test-admin-testapp-api-check-backend
+    argocd-image-updater.argoproj.io/paxaris_test-admin-testapp-api-check-backend.update-strategy: latest
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: paxaris-test-admin-testapp-api-check-backend
+  template:
+    metadata:
+      labels:
+        app: paxaris-test-admin-testapp-api-check-backend
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
+      containers:
+        - name: paxaris-test-admin-testapp-api-check-backend
+          image: devopspaxarisglobalrepo/paxaris_test-admin-testapp-api-check-backend-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paxaris-test-admin-testapp-api-check-backend
+spec:
+  selector:
+    app: paxaris-test-admin-testapp-api-check-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP
