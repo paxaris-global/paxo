@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paxaristest-admin-paxaristest2-backend
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: devopspaxarisglobalrepo/paxaristest-admin-paxaristest2-backend
+    argocd-image-updater.argoproj.io/paxaristest-admin-paxaristest2-backend.update-strategy: latest
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: paxaristest-admin-paxaristest2-backend
+  template:
+    metadata:
+      labels:
+        app: paxaristest-admin-paxaristest2-backend
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
+      containers:
+        - name: paxaristest-admin-paxaristest2-backend
+          image: devopspaxarisglobalrepo/paxaristest-admin-paxaristest2-backend-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paxaristest-admin-paxaristest2-backend
+spec:
+  selector:
+    app: paxaristest-admin-paxaristest2-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP
