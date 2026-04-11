@@ -1,3 +1,15 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-credentials
+type: Opaque
+stringData:
+  GITHUB_TOKEN: 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
+  GITHUB_ORG: PaxarisGlobal
+  DOCKER_USERNAME: devopspaxarisglobalrepo
+  DOCKER_PASSWORD: dckr_pat_iMNdmvRjzkI4vFj1X98FF1_bPLI
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -54,6 +66,7 @@ spec:
                 secretKeyRef:
                   name: github-credentials
                   key: DOCKER_PASSWORD
+
 ---
 apiVersion: v1
 kind: Service
