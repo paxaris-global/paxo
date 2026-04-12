@@ -1,3 +1,4 @@
 .env
 github secret.txt
 *.env
+k8/github-docker-secrets.yaml
