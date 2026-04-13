@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paxarisglobaltest9-admin-e2efull1421-frontend
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: app=devopspaxarisglobalrepo/paxarisglobaltest9-admin-e2efull1421-frontend
+    argocd-image-updater.argoproj.io/app.update-strategy: latest
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: paxarisglobaltest9-admin-e2efull1421-frontend
+  template:
+    metadata:
+      labels:
+        app: paxarisglobaltest9-admin-e2efull1421-frontend
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
+      containers:
+        - name: paxarisglobaltest9-admin-e2efull1421-frontend
+          image: devopspaxarisglobalrepo/paxarisglobaltest9-admin-e2efull1421-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paxarisglobaltest9-admin-e2efull1421-frontend
+spec:
+  selector:
+    app: paxarisglobaltest9-admin-e2efull1421-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP
