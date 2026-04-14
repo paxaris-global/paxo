@@ -4,7 +4,7 @@ metadata:
   name: github-credentials
 type: Opaque
 stringData:
-  GITHUB_TOKEN: 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
+  GITHUB_TOKEN: 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
   GITHUB_ORG: PaxarisGlobal
   DOCKER_USERNAME: devopspaxarisglobalrepo
   DOCKER_PASSWORD: dckr_pat_iMNdmvRjzkI4vFj1X98FF1_bPLI
