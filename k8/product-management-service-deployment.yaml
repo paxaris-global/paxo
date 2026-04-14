@@ -4,7 +4,7 @@ metadata:
   name: github-credentials
 type: Opaque
 stringData:
-  GITHUB_TOKEN: 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
+  GITHUB_TOKEN: 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
   GITHUB_ORG: PaxarisGlobal
   DOCKER_USERNAME: devopspaxarisglobalrepo
   DOCKER_PASSWORD: dckr_pat_iMNdmvRjzkI4vFj1X98FF1_bPLI
@@ -15,8 +15,8 @@ kind: Deployment
 metadata:
   name: product-management-service
   annotations:
-    argocd-image-updater.argoproj.io/image-list: devopspaxarisglobalrepo/product-management-service
-    argocd-image-updater.argoproj.io/product-management-service.update-strategy: latest
+    argocd-image-updater.argoproj.io/image-list: product=devopspaxarisglobalrepo/product-management-service
+    argocd-image-updater.argoproj.io/product.update-strategy: latest
 spec:
   selector:
     matchLabels:
@@ -27,11 +27,9 @@ spec:
       labels:
         app: product-management-service
     spec:
-      imagePullSecrets:
-        - name: dockerhub-secret
       containers:
         - name: product-management-service
-          image: devopspaxarisglobalrepo/product-management-service:f40ea0ba8bcc1752262947b585322fa762899e6c
+          image: devopspaxarisglobalrepo/product-management-service:latest   # ✅ IMPORTANT
           imagePullPolicy: Always
           ports:
             - containerPort: 8088
@@ -56,16 +54,6 @@ spec:
                 secretKeyRef:
                   name: github-credentials
                   key: GITHUB_ORG
-            - name: DOCKER_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: github-credentials
-                  key: DOCKER_USERNAME
-            - name: DOCKER_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: github-credentials
-                  key: DOCKER_PASSWORD
 
 ---
 apiVersion: v1
