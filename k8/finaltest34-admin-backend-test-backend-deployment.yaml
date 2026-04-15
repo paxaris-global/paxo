@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: finaltest34-admin-backend-test-backend
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: app=devopspaxarisglobalrepo/finaltest34-admin-backend-test-backend
+    argocd-image-updater.argoproj.io/app.update-strategy: latest
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: finaltest34-admin-backend-test-backend
+  template:
+    metadata:
+      labels:
+        app: finaltest34-admin-backend-test-backend
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
+      containers:
+        - name: finaltest34-admin-backend-test-backend
+          image: devopspaxarisglobalrepo/finaltest34-admin-backend-test-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: finaltest34-admin-backend-test-backend
+spec:
+  selector:
+    app: finaltest34-admin-backend-test-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP
