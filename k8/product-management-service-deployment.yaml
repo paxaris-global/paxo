@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: product-management-service
-          image: devopspaxarisglobalrepo/product-management-service:19bcd5f12b8bd942539e4f145aeef13432865124
+          image: devopspaxarisglobalrepo/product-management-service:latest   # ✅ IMPORTANT
           imagePullPolicy: Always
           ports:
             - containerPort: 8088
@@ -42,6 +42,17 @@ spec:
                 secretKeyRef:
                   name: github-credentials
                   key: GITHUB_ORG
+
+            - name: DOCKER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: github-credentials
+                  key: DOCKER_USERNAME
+            - name: DOCKER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: github-credentials
+                  key: DOCKER_PASSWORD
 
 ---
 apiVersion: v1
