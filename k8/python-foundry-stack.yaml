@@ -1,0 +1,227 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: python-foundry-config
+data:
+  APP_ENV: "production"
+  APP_HOST: "0.0.0.0"
+  APP_PORT: "8000"
+  POSTGRES_USER: "ai_codegen"
+  POSTGRES_DB: "ai_codegen_db"
+  POSTGRES_HOST: "python-foundry-postgres"
+  POSTGRES_PORT: "5432"
+  REDIS_URL: "redis://python-foundry-redis:6379/0"
+  CELERY_BROKER_URL: "redis://python-foundry-redis:6379/0"
+  CELERY_RESULT_BACKEND: "redis://python-foundry-redis:6379/1"
+  CHROMA_PERSIST_DIRECTORY: "/app/chroma_data"
+  DOWNLOADS_DIR: "/app/downloads"
+  LLM_PROVIDER: "openai"
+  OPENAI_MODEL: "gpt-4o-mini"
+  EMBEDDING_MODEL: "text-embedding-3-small"
+  LOG_LLM_PROMPTS: "false"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: python-foundry-secrets
+type: Opaque
+stringData:
+  SECRET_KEY: "change_me_in_production"
+  POSTGRES_PASSWORD: "ai_codegen_pass"
+  OPENAI_API_KEY: ""
+  ANTHROPIC_API_KEY: ""
+  SEARCH_API_KEY: ""
+  GITHUB_TOKEN: ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-foundry-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python-foundry-postgres
+  template:
+    metadata:
+      labels:
+        app: python-foundry-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: "postgres:16-alpine"
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: python-foundry-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: python-foundry-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: python-foundry-config
+                  key: POSTGRES_DB
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: python-foundry-postgres
+spec:
+  selector:
+    app: python-foundry-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-foundry-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python-foundry-redis
+  template:
+    metadata:
+      labels:
+        app: python-foundry-redis
+    spec:
+      containers:
+        - name: redis
+          image: "redis:7-alpine"
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+      volumes:
+        - name: redis-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: python-foundry-redis
+spec:
+  selector:
+    app: python-foundry-redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-foundry-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python-foundry-api
+  template:
+    metadata:
+      labels:
+        app: python-foundry-api
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
+      containers:
+        - name: api
+          image: "devopspaxarisglobalrepo/python_foundry:latest"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: python-foundry-config
+            - secretRef:
+                name: python-foundry-secrets
+          volumeMounts:
+            - name: generated-projects
+              mountPath: /app/generated_projects
+            - name: chroma-data
+              mountPath: /app/chroma_data
+            - name: downloads
+              mountPath: /app/downloads
+      volumes:
+        - name: generated-projects
+          emptyDir: {}
+        - name: chroma-data
+          emptyDir: {}
+        - name: downloads
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: python-foundry-api
+spec:
+  selector:
+    app: python-foundry-api
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-foundry-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python-foundry-worker
+  template:
+    metadata:
+      labels:
+        app: python-foundry-worker
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
+      containers:
+        - name: worker
+          image: "devopspaxarisglobalrepo/python_foundry:latest"
+          imagePullPolicy: Always
+          command:
+            - celery
+            - -A
+            - app.tasks.celery_app.celery_app
+            - worker
+            - --loglevel=INFO
+            - --concurrency=2
+          envFrom:
+            - configMapRef:
+                name: python-foundry-config
+            - secretRef:
+                name: python-foundry-secrets
+          volumeMounts:
+            - name: generated-projects
+              mountPath: /app/generated_projects
+            - name: chroma-data
+              mountPath: /app/chroma_data
+            - name: downloads
+              mountPath: /app/downloads
+      volumes:
+        - name: generated-projects
+          emptyDir: {}
+        - name: chroma-data
+          emptyDir: {}
+        - name: downloads
+          emptyDir: {}
