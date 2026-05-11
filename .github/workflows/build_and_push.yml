@@ -27,6 +27,8 @@ jobs:
             echo "project_type=maven" >> "$GITHUB_OUTPUT"
           elif [ -f package.json ] && [ -f Dockerfile ]; then
             echo "project_type=frontend" >> "$GITHUB_OUTPUT"
+          elif [ -f requirements.txt ] && [ -f Dockerfile ]; then
+            echo "project_type=python" >> "$GITHUB_OUTPUT"
           else
             echo "project_type=unknown" >> "$GITHUB_OUTPUT"
           fi
@@ -34,6 +36,19 @@ jobs:
       - name: Resolve frontend Docker repository
         id: frontend-image
         if: ${{ steps.detect.outputs.project_type == 'frontend' }}
+        run: |
+          PAYLOAD_REPO='${{ github.event.client_payload.docker_repository }}'
+          if [ -n "$PAYLOAD_REPO" ]; then
+            IMAGE_REPO="$PAYLOAD_REPO"
+          else
+            REPO_NAME='${{ github.event.client_payload.repo }}'
+            IMAGE_REPO="devopspaxarisglobalrepo/$(echo "$REPO_NAME" | awk -F/ '{print tolower($2)}')"
+          fi
+          echo "image_repo=$IMAGE_REPO" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve python Docker repository
+        id: python-image
+        if: ${{ steps.detect.outputs.project_type == 'python' }}
         run: |
           PAYLOAD_REPO='${{ github.event.client_payload.docker_repository }}'
           if [ -n "$PAYLOAD_REPO" ]; then
@@ -82,7 +97,7 @@ jobs:
         run: echo "Skipping SonarQube because SONAR_TOKEN secret is not configured."
 
       - name: Docker Hub Login
-        if: ${{ steps.detect.outputs.project_type == 'maven' || steps.detect.outputs.project_type == 'frontend' }}
+        if: ${{ steps.detect.outputs.project_type == 'maven' || steps.detect.outputs.project_type == 'frontend' || steps.detect.outputs.project_type == 'python' }}
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
@@ -112,8 +127,19 @@ jobs:
             ${{ steps.frontend-image.outputs.image_repo }}:latest
             ${{ steps.frontend-image.outputs.image_repo }}:${{ github.event.client_payload.sha || github.sha }}
 
+      - name: Build & Push Python Image
+        if: ${{ steps.detect.outputs.project_type == 'python' }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ steps.python-image.outputs.image_repo }}:latest
+            ${{ steps.python-image.outputs.image_repo }}:${{ github.event.client_payload.sha || github.sha }}
+
       - name: Update GitOps manifests in paxo
-        if: ${{ steps.detect.outputs.project_type == 'maven' || steps.detect.outputs.project_type == 'frontend' }}
+        if: ${{ steps.detect.outputs.project_type == 'maven' || steps.detect.outputs.project_type == 'frontend' || steps.detect.outputs.project_type == 'python' }}
         env:
           GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
         run: |
@@ -142,6 +168,10 @@ jobs:
               DEPLOYMENT_FILE="k8/paxo-frontend-deployment.yaml"
               TARGET_IMAGE="devopspaxarisglobalrepo/paxo_frontend:${IMAGE_SHA}"
               ;;
+            paxaris-global/python_foundry)
+              DEPLOYMENT_FILE="k8/python-foundry-stack.yaml"
+              TARGET_IMAGE="devopspaxarisglobalrepo/python_foundry:${IMAGE_SHA}"
+              ;;
             *)
               echo "No GitOps deployment mapping configured for $REPO_FULL."
               exit 0
@@ -151,7 +181,12 @@ jobs:
           git clone "https://x-access-token:${GH_ACCESS_TOKEN}@github.com/paxaris-global/paxo.git" /tmp/paxo-gitops
           cd /tmp/paxo-gitops
 
-          sed -i "s|^\([[:space:]]*image:[[:space:]]*\).*|\1${TARGET_IMAGE}|" "$DEPLOYMENT_FILE"
+          if [ "$REPO_FULL" = "paxaris-global/python_foundry" ]; then
+            # Update both API and worker container images in the stack file.
+            sed -i "s|^\([[:space:]]*image:[[:space:]]*\\)\"*devopspaxarisglobalrepo/python_foundry:[^\"]*\"*|\\1\"${TARGET_IMAGE}\"|" "$DEPLOYMENT_FILE"
+          else
+            sed -i "s|^\([[:space:]]*image:[[:space:]]*\).*|\1${TARGET_IMAGE}|" "$DEPLOYMENT_FILE"
+          fi
 
           if git diff --quiet; then
             echo "No manifest change detected."
