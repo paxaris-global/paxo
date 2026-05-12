@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: finaltest36-admin-backend-test-frontend
   annotations:
-    argocd-image-updater.argoproj.io/image-list: app=devopspaxarisglobalrepo/finaltest36-admin-backend-test-frontend
+    argocd-image-updater.argoproj.io/image-list: "app=devopspaxarisglobalrepo/finaltest36-admin-backend-test-frontend"
     argocd-image-updater.argoproj.io/app.update-strategy: latest
 spec:
   replicas: 2
@@ -19,7 +19,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: finaltest36-admin-backend-test-frontend
-          image: devopspaxarisglobalrepo/finaltest36-admin-backend-test-frontend:latest
+          image: "devopspaxarisglobalrepo/finaltest36-admin-backend-test-frontend:latest"
           imagePullPolicy: Always
           ports:
             - containerPort: 80

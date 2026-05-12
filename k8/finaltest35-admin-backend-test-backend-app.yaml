@@ -6,7 +6,7 @@ metadata:
 spec:
     project: default
     source:
-        repoURL: https://github.com/PaxarisGlobal/finaltest35-admin-backend-test-backend.git
+        repoURL: https://github.com/paxaris-global/finaltest35-admin-backend-test-backend.git
         targetRevision: main
         path: k8
     destination:

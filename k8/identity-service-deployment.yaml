@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: identity-service
   annotations:
-    argocd-image-updater.argoproj.io/image-list: devopspaxarisglobalrepo/identity-service
+    argocd-image-updater.argoproj.io/image-list: "devopspaxarisglobalrepo/identity-service"
     argocd-image-updater.argoproj.io/identity-service.update-strategy: latest
 spec:
   selector:
@@ -19,13 +19,13 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: identity-service
-          image: devopspaxarisglobalrepo/identity-service:3cef9a690e666c6c34bad959d1643621563fc2c0
+          image: "devopspaxarisglobalrepo/identity-service:3cef9a690e666c6c34bad959d1643621563fc2c0"
           imagePullPolicy: Always
           ports:
             - containerPort: 8087
           env:
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://mysql:3306/centralized_data?allowPublicKeyRetrieval=true&useSSL=false
+              value: "jdbc:mysql://mysql:3306/centralized_data?allowPublicKeyRetrieval=true&useSSL=false"
             - name: SPRING_DATASOURCE_USERNAME
               value: root
             - name: SPRING_DATASOURCE_PASSWORD

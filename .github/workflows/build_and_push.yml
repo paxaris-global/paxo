@@ -113,7 +113,7 @@ jobs:
           mvn -B jib:build -DskipTests -Djib.to.tags=latest,${IMAGE_SHA_TAG}
 
       - name: Set up Docker Buildx
-        if: ${{ steps.detect.outputs.project_type == 'frontend' }}
+        if: ${{ steps.detect.outputs.project_type == 'frontend' || steps.detect.outputs.project_type == 'python' }}
         uses: docker/setup-buildx-action@v3
 
       - name: Build & Push Frontend Image
@@ -123,6 +123,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             ${{ steps.frontend-image.outputs.image_repo }}:latest
             ${{ steps.frontend-image.outputs.image_repo }}:${{ github.event.client_payload.sha || github.sha }}
@@ -134,6 +135,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           tags: |
             ${{ steps.python-image.outputs.image_repo }}:latest
             ${{ steps.python-image.outputs.image_repo }}:${{ github.event.client_payload.sha || github.sha }}
@@ -167,6 +169,10 @@ jobs:
             paxaris-global/paxo_frontend)
               DEPLOYMENT_FILE="k8/paxo-frontend-deployment.yaml"
               TARGET_IMAGE="devopspaxarisglobalrepo/paxo_frontend:${IMAGE_SHA}"
+              ;;
+            paxaris-global/python_foundry_frontend)
+              DEPLOYMENT_FILE="k8/python-frontend-deployment.yaml"
+              TARGET_IMAGE="devopspaxarisglobalrepo/python_foundry_frontend:${IMAGE_SHA}"
               ;;
             paxaris-global/python_foundry)
               DEPLOYMENT_FILE="k8/python-foundry-stack.yaml"

@@ -15,7 +15,9 @@ data:
   CELERY_RESULT_BACKEND: "redis://python-foundry-redis:6379/1"
   CHROMA_PERSIST_DIRECTORY: "/app/chroma_data"
   DOWNLOADS_DIR: "/app/downloads"
-  LLM_PROVIDER: "openai"
+  LLM_PROVIDER: "anthropic"
+  ANTHROPIC_MODEL: "claude-3-opus-20240229"
+  ANTHROPIC_TIMEOUT_SECONDS: "60"
   OPENAI_MODEL: "gpt-4o-mini"
   EMBEDDING_MODEL: "text-embedding-3-small"
   LOG_LLM_PROMPTS: "false"
@@ -29,6 +31,7 @@ stringData:
   SECRET_KEY: "change_me_in_production"
   POSTGRES_PASSWORD: "ai_codegen_pass"
   OPENAI_API_KEY: ""
+  # Set real keys via kubectl apply after editing, or use ExternalSecrets / SealedSecrets — do not commit live tokens.
   ANTHROPIC_API_KEY: ""
   SEARCH_API_KEY: ""
   GITHUB_TOKEN: ""

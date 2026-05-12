@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: api-gateway
   annotations:
-    argocd-image-updater.argoproj.io/image-list: devopspaxarisglobalrepo/apigateway
+    argocd-image-updater.argoproj.io/image-list: "devopspaxarisglobalrepo/apigateway"
     argocd-image-updater.argoproj.io/apigateway.update-strategy: latest
 spec:
   selector:
@@ -19,7 +19,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: api-gateway
-          image: devopspaxarisglobalrepo/apigateway:latest
+          image: "devopspaxarisglobalrepo/apigateway:latest"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8085

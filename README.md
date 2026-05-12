@@ -1,41 +1,76 @@
-# Paxo Kubernetes + ngrok
+# Paxo
 
-## Run full stack with ngrok
+## Kubernetes + Argo CD (how the stack runs)
 
-Prerequisites:
-- Minikube is running and your workloads are deployed in Kubernete.
-- `kubectl` and `ngrok` are installed.
-- ngrok authtoken is configured (`ngrok config add-authtoken <token>`).
+This repo is the **GitOps source** for the Paxo platform. **Do not rely on `ng serve`** for production-style runs: frontends and backends are **Docker images** deployed as Kubernetes **Deployments**, synced by **Argo CD**.
 
-From this folder, run:
+### Argo CD application
+
+- **Application name:** `paxo-app` (namespace `argocd`)
+- **Source:** `https://github.com/paxaris-global/paxo.git`, branch **`main`**, path **`k8/`** (recursive)
+- **Destination:** cluster `https://kubernetes.default.svc`, namespace **`default`**
+- **Sync:** automated prune + self-heal (`k8/argocd-app.yaml`)
+
+Bootstrap Argo once (if `paxo-app` is not already installed):
+
+```bash
+kubectl apply -n argocd -f k8/argocd-app.yaml
+```
+
+### What `paxo-app` deploys (manifests under `k8/`)
+
+| Area | Resources |
+|------|-----------|
+| Edge / UI | `api-gateway`, `paxo-frontend`, `python-frontend` (Python Foundry UI) |
+| Identity | `identity-service`, `keycloak`, `mysql` |
+| Products | `product-management-service` |
+| Observability | `jaeger` |
+| Python Foundry | `python-foundry-stack.yaml` (API, worker, Postgres, Redis) |
+| Optional demos | `finaltest36-*` deployments |
+| Child apps | `finaltest35-*` Application CRs → separate repos (if enabled) |
+
+Images come from Docker Hub (e.g. `devopspaxarisglobalrepo/...`), tagged by **GitHub Actions** in `paxaris-global/paxo` (central image builder + manifest updates on **`main`**).
+
+### Day-to-day workflow (no `ng serve`)
+
+1. **Change code** in the service repo (e.g. `paxo_frontend`, `api-gateway`).
+2. **CI** builds and pushes the image, then updates the image field in **`paxo/k8/*.yaml`** on **`main`** (see `.github/workflows/build_and_push.yml`).
+3. **Argo CD** detects the commit and **syncs** the cluster.
+
+To run everything **inside Kubernetes** after manifests exist: ensure **`dockerhub-secret`** exists in **`default`** (for private pulls), then let **Argo** apply **`main`**.
+
+### Reach the UI/API from your laptop (cluster already running)
+
+Kubernetes **Services** are **ClusterIP** by default (no public URL in-git). For local browsing without `ng serve`:
+
+```bash
+./scripts/start-local-access.sh
+```
+
+That **port-forwards** to pods already deployed by Argo (frontend `:4200`, gateway `:8085`, etc.). You are still hitting **the same images** Argo deployed—not a dev server.
+
+---
+
+## Optional: public URL with ngrok
+
+Prerequisites: Minikube/cluster running, workloads deployed, `kubectl` + `ngrok` configured.
 
 ```bash
 ./scripts/start-ngrok.sh
-```
-
-Use a custom short domain label (example):
-
-```bash
+# optional label:
 ./scripts/start-ngrok.sh paxarisglobal-api
 ```
 
-This resolves to `https://paxarisglobal-api.ngrok-free.app` by default.
-If your ngrok account uses a different suffix, set it before running:
-
-```bash
-NGROK_DOMAIN_SUFFIX=ngrok-free.dev ./scripts/start-ngrok.sh paxarisglobal-api
-```
-
-This starts:
-- `kubectl port-forward svc/paxo-frontend 4200:80`
-- `ngrok` tunnel for frontend (configured in `ngrok/ngrok.yml`)
-
-Why one tunnel is enough:
-- Frontend Nginx proxies `/identity`, `/project`, and `/gateway` to `api-gateway` inside Kubernetes.
-- So the single frontend ngrok URL gives access to the full stack.
-
-To stop all helper processes:
+Stop:
 
 ```bash
 ./scripts/stop-ngrok.sh
 ```
+
+Frontend nginx proxies `/identity`, `/project`, `/gateway` to `api-gateway`, so one frontend tunnel can expose the stack.
+
+---
+
+## Legacy: Docker Compose
+
+Some developers still use **`docker-compose.yml.backup`** for an all-in-one Docker setup on the host. The **recommended** path for Paxaris is **Kubernetes + Argo CD + images on `main`** as described above.

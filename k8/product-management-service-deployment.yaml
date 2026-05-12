@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: product-management-service
   annotations:
-    argocd-image-updater.argoproj.io/image-list: product=devopspaxarisglobalrepo/product-management-service
+    argocd-image-updater.argoproj.io/image-list: "product=devopspaxarisglobalrepo/product-management-service"
     argocd-image-updater.argoproj.io/product.update-strategy: latest
 spec:
   selector:
@@ -17,13 +17,13 @@ spec:
     spec:
       containers:
         - name: product-management-service
-          image: devopspaxarisglobalrepo/product-management-service:latest   # ✅ IMPORTANT
+          image: "devopspaxarisglobalrepo/product-management-service:latest"
           imagePullPolicy: Always
           ports:
             - containerPort: 8088
           env:
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://mysql:3306/centralized_data?createDatabaseIfNotExist=true
+              value: "jdbc:mysql://mysql:3306/centralized_data?createDatabaseIfNotExist=true"
             - name: SPRING_DATASOURCE_USERNAME
               value: root
             - name: SPRING_DATASOURCE_PASSWORD

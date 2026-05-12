@@ -11,6 +11,8 @@ spec:
     path: k8
     directory:
       recurse: true
+      # Duplicate Application CRs + finaltest36 child apps fought inline manifests in this repo
+      exclude: '{generated-apps/**,**/api-gateway-deployment.yaml.bak}'
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: default # Or your target namespace

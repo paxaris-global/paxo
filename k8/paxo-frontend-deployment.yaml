@@ -11,6 +11,9 @@ spec:
     metadata:
       labels:
         app: paxo-frontend
+      annotations:
+        # Bump when paxo_frontend image tag stays :latest so Argo rolls pods after CI pushes.
+        paxaris.gitops/redeploy-at: "2026-05-12T12:00:00Z"
     spec:
       imagePullSecrets:
         - name: dockerhub-secret
