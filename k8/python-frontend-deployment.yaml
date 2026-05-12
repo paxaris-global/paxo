@@ -17,7 +17,7 @@ spec:
       containers:
         - name: python-frontend
           image: "devopspaxarisglobalrepo/python_foundry_frontend:latest"
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
 ---
