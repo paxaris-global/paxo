@@ -11,7 +11,7 @@
 # Default gateway URL: http://localhost:8085
 #
 # Usage:
-#   REALM_NAME=vipultest ADMIN_PASSWORD='YourStrongPass!1' ./scripts/bootstrap-dev-realm.sh
+#   REALM_NAME=vipultest ADMIN_PASSWORD='admin@123' ./scripts/bootstrap-dev-realm.sh
 #
 set -euo pipefail
 

@@ -24,6 +24,8 @@ spec:
           ports:
             - containerPort: 8087
           env:
+            # Master realm admin — identity-service uses this for Keycloak Admin REST API (signup, clients, secrets).
+            # This is NOT the password for logging into a tenant realm unless you deliberately match it at signup.
             - name: SPRING_DATASOURCE_URL
               value: "jdbc:mysql://mysql:3306/centralized_data?allowPublicKeyRetrieval=true&useSSL=false"
             - name: SPRING_DATASOURCE_USERNAME
@@ -37,9 +39,12 @@ spec:
             - name: KEYCLOAK_REALM
               value: master
             - name: KEYCLOAK_ADMIN
-              value: admin
+              value: "admin"
             - name: KEYCLOAK_ADMIN_PASSWORD
-              value: admin@123
+              value: "admin@123"
+            # Default username when signup creates the first realm admin user (must match login "username").
+            - name: IDENTITY_DEFAULT_ADMIN_USERNAME
+              value: "admin"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: http://jaeger:4318/v1/traces
             - name: IDENTITY_JWT_ISSUER_HOST_REWRITE_TO
