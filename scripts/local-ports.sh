@@ -1,0 +1,11 @@
+# Shared localhost ports for Paxo port-forward and ngrok scripts.
+# Override any value inline, for example:
+#   PAXO_FRONTEND_LOCAL_PORT=4300 PAXO_GATEWAY_LOCAL_PORT=18085 ./scripts/start-local-access.sh
+: "${PAXO_FRONTEND_LOCAL_PORT:=4200}"
+: "${PAXO_KEYCLOAK_LOCAL_PORT:=8080}"
+: "${PAXO_GATEWAY_LOCAL_PORT:=8085}"
+: "${PAXO_IDENTITY_LOCAL_PORT:=8087}"
+: "${PAXO_PRODUCT_LOCAL_PORT:=8088}"
+: "${PAXO_PYTHON_FRONTEND_LOCAL_PORT:=4201}"
+: "${PAXO_JAEGER_LOCAL_PORT:=16686}"
+: "${PAXO_ARGOCD_LOCAL_PORT:=8081}"

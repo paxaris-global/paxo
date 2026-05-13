@@ -6,6 +6,10 @@ RUNTIME_DIR="$ROOT_DIR/.ngrok-runtime"
 NGROK_CONFIG="$ROOT_DIR/ngrok/ngrok.yml"
 NGROK_SYSTEM_CONFIG="${HOME}/Library/Application Support/ngrok/ngrok.yml"
 DOMAIN_SUFFIX="${NGROK_DOMAIN_SUFFIX:-ngrok-free.app}"
+NS="${KUBECTL_NAMESPACE:-default}"
+
+# shellcheck source=scripts/local-ports.sh
+source "$ROOT_DIR/scripts/local-ports.sh"
 
 TARGET_INPUT="${1:-frontend}"
 CUSTOM_DOMAIN_INPUT="${2:-}"
@@ -72,21 +76,21 @@ case "$TARGET_INPUT" in
   frontend)
     TARGET="frontend"
     SERVICE_NAME="paxo-frontend"
-    LOCAL_PORT="4200"
+    LOCAL_PORT="$PAXO_FRONTEND_LOCAL_PORT"
     REMOTE_PORT="80"
     DISPLAY_NAME="Frontend"
     ;;
   keycloak)
     TARGET="keycloak"
     SERVICE_NAME="keycloak"
-    LOCAL_PORT="8080"
+    LOCAL_PORT="$PAXO_KEYCLOAK_LOCAL_PORT"
     REMOTE_PORT="8080"
     DISPLAY_NAME="Keycloak"
     ;;
   "")
     TARGET="frontend"
     SERVICE_NAME="paxo-frontend"
-    LOCAL_PORT="4200"
+    LOCAL_PORT="$PAXO_FRONTEND_LOCAL_PORT"
     REMOTE_PORT="80"
     DISPLAY_NAME="Frontend"
     ;;
@@ -94,14 +98,14 @@ case "$TARGET_INPUT" in
     # Backward compatibility: first argument can still be domain.
     TARGET="frontend"
     SERVICE_NAME="paxo-frontend"
-    LOCAL_PORT="4200"
+    LOCAL_PORT="$PAXO_FRONTEND_LOCAL_PORT"
     REMOTE_PORT="80"
     DISPLAY_NAME="Frontend"
     CUSTOM_DOMAIN_INPUT="$TARGET_INPUT"
     ;;
 esac
 
-if ! kubectl get svc "$SERVICE_NAME" >/dev/null 2>&1; then
+if ! kubectl -n "$NS" get svc "$SERVICE_NAME" >/dev/null 2>&1; then
   echo "Error: Kubernetes service '$SERVICE_NAME' not found." >&2
   exit 1
 fi
@@ -111,7 +115,7 @@ stop_if_running "port-forward-frontend"
 stop_if_running "port-forward-keycloak"
 stop_if_running "ngrok"
 
-nohup kubectl port-forward "svc/$SERVICE_NAME" "$LOCAL_PORT:$REMOTE_PORT" >"$RUNTIME_DIR/port-forward-$TARGET.log" 2>&1 &
+nohup kubectl -n "$NS" port-forward "svc/$SERVICE_NAME" "$LOCAL_PORT:$REMOTE_PORT" >"$RUNTIME_DIR/port-forward-$TARGET.log" 2>&1 &
 echo $! >"$RUNTIME_DIR/port-forward-$TARGET.pid"
 
 wait_for_port "$LOCAL_PORT"

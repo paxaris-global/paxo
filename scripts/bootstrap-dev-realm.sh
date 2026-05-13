@@ -8,16 +8,20 @@
 #
 # Requires API Gateway reachable — from host with port-forward:
 #   ./scripts/start-local-access.sh
-# Default gateway URL: http://localhost:8085
+# Default gateway URL: http://localhost:${PAXO_GATEWAY_LOCAL_PORT:-8085}
 #
 # Usage:
 #   REALM_NAME=vipultest ADMIN_PASSWORD='admin@123' ./scripts/bootstrap-dev-realm.sh
 #
 set -euo pipefail
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=scripts/local-ports.sh
+source "$ROOT_DIR/scripts/local-ports.sh"
+
 REALM_NAME="${REALM_NAME:-vipultest}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:?Set ADMIN_PASSWORD (e.g. export ADMIN_PASSWORD='YourPass!1')}"
-GATEWAY_URL="${GATEWAY_URL:-http://localhost:8085}"
+GATEWAY_URL="${GATEWAY_URL:-http://localhost:${PAXO_GATEWAY_LOCAL_PORT}}"
 
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || {

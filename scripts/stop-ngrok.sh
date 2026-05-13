@@ -26,7 +26,7 @@ stop_from_pid_file "port-forward-keycloak"
 # Best-effort cleanup for stale processes not tracked by PID files.
 pkill -f "ngrok start --all" >/dev/null 2>&1 || true
 pkill -f "ngrok http" >/dev/null 2>&1 || true
-pkill -f "kubectl port-forward svc/paxo-frontend 4200:80" >/dev/null 2>&1 || true
-pkill -f "kubectl port-forward svc/keycloak 8080:8080" >/dev/null 2>&1 || true
+pkill -f "kubectl.*port-forward.*svc/paxo-frontend" >/dev/null 2>&1 || true
+pkill -f "kubectl.*port-forward.*svc/keycloak" >/dev/null 2>&1 || true
 
 echo "Done."

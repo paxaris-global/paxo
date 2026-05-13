@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOCAL_PORT="${ARGOCD_LOCAL_PORT:-8081}"
-BASE_URL="https://127.0.0.1:${LOCAL_PORT}"
+BASE_URL="http://127.0.0.1:${LOCAL_PORT}"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -37,7 +37,7 @@ fi
 
 PAYLOAD="$(ARGOCD_ADMIN_PASSWORD="$PASSWORD" python3 -c 'import json, os; print(json.dumps({"username": "admin", "password": os.environ["ARGOCD_ADMIN_PASSWORD"]}))')"
 
-RESPONSE="$(curl -ksS -X POST "${BASE_URL}/api/v1/session" \
+RESPONSE="$(curl -sS -X POST "${BASE_URL}/api/v1/session" \
   -H 'Content-Type: application/json' \
   -d "$PAYLOAD")"
 

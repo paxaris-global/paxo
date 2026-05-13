@@ -17,6 +17,8 @@ Bootstrap Argo once (if `paxo-app` is not already installed):
 kubectl apply -n argocd -f k8/argocd-app.yaml
 ```
 
+**Argo CD UI in Chrome (local):** run `./scripts/start-argocd-ui.sh` and open **`http://127.0.0.1:8081`** (plain HTTP; no TLS prompt). The cluster is configured with `server.insecure=true` and `argocd-cm` `url` for this dev flow. If the UI was opened with **`https://` before, switch to **`http://`**.
+
 ### What `paxo-app` deploys (manifests under `k8/`)
 
 | Area | Resources |
@@ -48,6 +50,14 @@ Kubernetes **Services** are **ClusterIP** by default (no public URL in-git). For
 ```
 
 That **port-forwards** to pods already deployed by Argo (frontend `:4200`, gateway `:8085`, etc.). You are still hitting **the same images** Argo deployed—not a dev server.
+
+If another local project already uses one of those ports, override only the host-facing port:
+
+```bash
+PAXO_FRONTEND_LOCAL_PORT=4300 PAXO_GATEWAY_LOCAL_PORT=18085 ./scripts/start-local-access.sh
+```
+
+Available overrides are defined in `scripts/local-ports.sh`: `PAXO_FRONTEND_LOCAL_PORT`, `PAXO_KEYCLOAK_LOCAL_PORT`, `PAXO_GATEWAY_LOCAL_PORT`, `PAXO_IDENTITY_LOCAL_PORT`, `PAXO_PRODUCT_LOCAL_PORT`, `PAXO_PYTHON_FRONTEND_LOCAL_PORT`, and `PAXO_JAEGER_LOCAL_PORT`.
 
 ---
 

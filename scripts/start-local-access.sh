@@ -5,6 +5,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUNTIME_DIR="$ROOT_DIR/.local-runtime"
 NS="${KUBECTL_NAMESPACE:-default}"
 
+# shellcheck source=scripts/local-ports.sh
+source "$ROOT_DIR/scripts/local-ports.sh"
+
 mkdir -p "$RUNTIME_DIR"
 
 require_cmd() {
@@ -40,6 +43,42 @@ stop_if_running() {
   fi
 }
 
+start_resilient_forward() {
+  local name="$1"
+  local service="$2"
+  local local_port="$3"
+  local remote_port="$4"
+  local log_file="$RUNTIME_DIR/$name.log"
+
+  # The wrapper stays alive and restarts kubectl if port-forward exits because
+  # of pod reschedules, apiserver reconnects, or laptop network/sleep events.
+  nohup bash -c '
+    set -u
+    child=""
+    cleanup() {
+      if [[ -n "${child:-}" ]] && kill -0 "$child" >/dev/null 2>&1; then
+        kill "$child" >/dev/null 2>&1 || true
+        wait "$child" >/dev/null 2>&1 || true
+      fi
+      exit 0
+    }
+    trap cleanup TERM INT EXIT
+
+    while true; do
+      printf "[%s] starting kubectl port-forward svc/%s %s:%s\n" "$(date -Is)" "$1" "$2" "$3"
+      kubectl -n "$4" port-forward "svc/$1" "$2:$3" --address localhost &
+      child=$!
+      wait "$child"
+      exit_code=$?
+      child=""
+      printf "[%s] port-forward svc/%s exited with code %s; restarting in 2s\n" "$(date -Is)" "$1" "$exit_code"
+      sleep 2
+    done
+  ' _ "$service" "$local_port" "$remote_port" "$NS" >"$log_file" 2>&1 &
+
+  echo $! >"$RUNTIME_DIR/$name.pid"
+}
+
 start_forward() {
   local name="$1"
   local service="$2"
@@ -47,10 +86,9 @@ start_forward() {
   local remote_port="$4"
 
   stop_if_running "$name"
+  pkill -f "kubectl.*port-forward.*svc/$service.*$local_port:$remote_port" >/dev/null 2>&1 || true
 
-  # "localhost" binds 127.0.0.1 + ::1 so http://localhost:4200 works (not only 127.0.0.1).
-  nohup kubectl -n "$NS" port-forward "svc/$service" "$local_port:$remote_port" --address localhost >"$RUNTIME_DIR/$name.log" 2>&1 &
-  echo $! >"$RUNTIME_DIR/$name.pid"
+  start_resilient_forward "$name" "$service" "$local_port" "$remote_port"
 
   wait_for_port "$local_port"
 }
@@ -59,28 +97,30 @@ require_cmd kubectl
 require_cmd nc
 
 # Ensure required services exist before attempting forwards.
-for svc in paxo-frontend keycloak api-gateway identity-service product-management-service jaeger; do
+for svc in paxo-frontend keycloak api-gateway identity-service product-management-service python-frontend jaeger; do
   if ! kubectl -n "$NS" get svc "$svc" >/dev/null 2>&1; then
     echo "Error: Kubernetes service '$svc' not found." >&2
     exit 1
   fi
 done
 
-start_forward "frontend" "paxo-frontend" 4200 80
-start_forward "keycloak" "keycloak" 8080 8080
-start_forward "gateway" "api-gateway" 8085 8085
-start_forward "identity" "identity-service" 8087 8087
-start_forward "product" "product-management-service" 8088 8088
-start_forward "jaeger" "jaeger" 16686 16686
+start_forward "frontend" "paxo-frontend" "$PAXO_FRONTEND_LOCAL_PORT" 80
+start_forward "keycloak" "keycloak" "$PAXO_KEYCLOAK_LOCAL_PORT" 8080
+start_forward "gateway" "api-gateway" "$PAXO_GATEWAY_LOCAL_PORT" 8085
+start_forward "identity" "identity-service" "$PAXO_IDENTITY_LOCAL_PORT" 8087
+start_forward "product" "product-management-service" "$PAXO_PRODUCT_LOCAL_PORT" 8088
+start_forward "python-frontend" "python-frontend" "$PAXO_PYTHON_FRONTEND_LOCAL_PORT" 80
+start_forward "jaeger" "jaeger" "$PAXO_JAEGER_LOCAL_PORT" 16686
 
 echo
 echo "Local URLs (open in browser — localhost or 127.0.0.1 both work):"
-echo "Frontend: http://localhost:4200"
-echo "Keycloak: http://localhost:8080"
-echo "Gateway: http://localhost:8085"
-echo "Identity: http://localhost:8087"
-echo "Product: http://localhost:8088"
-echo "Jaeger UI: http://localhost:16686"
+echo "Frontend: http://localhost:${PAXO_FRONTEND_LOCAL_PORT}"
+echo "Keycloak: http://localhost:${PAXO_KEYCLOAK_LOCAL_PORT}"
+echo "Gateway: http://localhost:${PAXO_GATEWAY_LOCAL_PORT}"
+echo "Identity: http://localhost:${PAXO_IDENTITY_LOCAL_PORT}"
+echo "Product: http://localhost:${PAXO_PRODUCT_LOCAL_PORT}"
+echo "Generate Product: http://localhost:${PAXO_PYTHON_FRONTEND_LOCAL_PORT}"
+echo "Jaeger UI: http://localhost:${PAXO_JAEGER_LOCAL_PORT}"
 echo
-echo "Keycloak OpenID config: http://localhost:8080/realms/master/.well-known/openid-configuration"
-echo "Stop all forwards with: ./scripts/stop-local-access.sh"
+echo "Keycloak OpenID config: http://localhost:${PAXO_KEYCLOAK_LOCAL_PORT}/realms/master/.well-known/openid-configuration"
+echo "These forwards auto-restart if kubectl drops. Stop all forwards with: ./scripts/stop-local-access.sh"

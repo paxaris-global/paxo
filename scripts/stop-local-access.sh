@@ -24,14 +24,16 @@ stop_if_running "keycloak"
 stop_if_running "gateway"
 stop_if_running "identity"
 stop_if_running "product"
+stop_if_running "python-frontend"
 stop_if_running "jaeger"
 
 # Extra cleanup if stale forwards exist without pid files.
-pkill -f "kubectl port-forward svc/paxo-frontend 4200:80" >/dev/null 2>&1 || true
-pkill -f "kubectl port-forward svc/keycloak 8080:8080" >/dev/null 2>&1 || true
-pkill -f "kubectl port-forward svc/api-gateway 8085:8085" >/dev/null 2>&1 || true
-pkill -f "kubectl port-forward svc/identity-service 8087:8087" >/dev/null 2>&1 || true
-pkill -f "kubectl port-forward svc/product-management-service 8088:8088" >/dev/null 2>&1 || true
-pkill -f "kubectl port-forward svc/jaeger 16686:16686" >/dev/null 2>&1 || true
+pkill -f "kubectl.*port-forward.*svc/paxo-frontend" >/dev/null 2>&1 || true
+pkill -f "kubectl.*port-forward.*svc/keycloak" >/dev/null 2>&1 || true
+pkill -f "kubectl.*port-forward.*svc/api-gateway" >/dev/null 2>&1 || true
+pkill -f "kubectl.*port-forward.*svc/identity-service" >/dev/null 2>&1 || true
+pkill -f "kubectl.*port-forward.*svc/product-management-service" >/dev/null 2>&1 || true
+pkill -f "kubectl.*port-forward.*svc/python-frontend" >/dev/null 2>&1 || true
+pkill -f "kubectl.*port-forward.*svc/jaeger" >/dev/null 2>&1 || true
 
 echo "All local forwards stopped."

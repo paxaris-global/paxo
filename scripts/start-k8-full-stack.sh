@@ -6,6 +6,9 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 K8_DIR="${ROOT_DIR}/k8"
 
+# shellcheck source=scripts/local-ports.sh
+source "$ROOT_DIR/scripts/local-ports.sh"
+
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
     echo "Error: required command '$1' is not installed." >&2
@@ -58,5 +61,5 @@ kubectl -n default get deploy -o wide 2>/dev/null || true
 
 echo
 echo "Done. Full stack applied and rollouts completed."
-echo "Local UI (optional): kubectl -n default port-forward svc/paxo-frontend 4200:80 --address 127.0.0.1"
+echo "Local UI (optional): kubectl -n default port-forward svc/paxo-frontend ${PAXO_FRONTEND_LOCAL_PORT}:80 --address 127.0.0.1"
 echo "Argo UI (optional):  ./scripts/start-argocd-ui.sh"
