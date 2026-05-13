@@ -6,7 +6,7 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: "app=devopspaxarisglobalrepo/vipultest-admin-test5-backend"
     argocd-image-updater.argoproj.io/app.update-strategy: latest
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: vipultest-admin-test5-backend
