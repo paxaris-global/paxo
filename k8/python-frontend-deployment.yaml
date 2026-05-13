@@ -16,7 +16,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: python-frontend
-          image: "devopspaxarisglobalrepo/python_foundry_frontend:latest"
+          image: devopspaxarisglobalrepo/python_foundry_frontend:3177dc249ff28083ed29e5d3b50e7328c347c915
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
