@@ -19,7 +19,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: api-gateway
-          image: devopspaxarisglobalrepo/apigateway:c48766909feb474f071e8aaeba734d9871e31dc7
+          image: devopspaxarisglobalrepo/apigateway:1f751de92e7db391722f83eb7910e4b3f21ee2f1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8085
