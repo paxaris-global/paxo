@@ -41,6 +41,22 @@ Images come from Docker Hub (e.g. `devopspaxarisglobalrepo/...`), tagged by **Gi
 
 To run everything **inside Kubernetes** after manifests exist: ensure **`dockerhub-secret`** exists in **`default`** (for private pulls), then let **Argo** apply **`main`**.
 
+### GitHub credentials (Create Product / provisioning)
+
+`product-management-service` uses a **GitHub Personal Access Token** (`ghp_...`), **not** your GitHub login password and **not** the Mac Keychain.
+
+1. In the browser (logged into GitHub): [Create classic PAT](https://github.com/settings/tokens/new) with scopes **`repo`**, **`admin:org`**, **`workflow`**. If your org uses SSO, click **Configure SSO** → authorize **PaxarisGlobal**.
+2. Sync to the cluster (paste token when prompted — nothing is your account password):
+
+```bash
+chmod +x scripts/sync-github-credentials.sh
+./scripts/sync-github-credentials.sh --prompt
+```
+
+Or put `GITHUB_TOKEN=ghp_...` in `paxo/.env` and run `./scripts/sync-github-credentials.sh`.
+
+If Create Product fails with `401 Bad credentials`, create a **new** PAT and run the script again.
+
 ### Reach the UI/API from your laptop (cluster already running)
 
 Kubernetes **Services** are **ClusterIP** by default (no public URL in-git). For local browsing without `ng serve`:
@@ -84,3 +100,24 @@ Frontend nginx proxies `/identity`, `/project`, `/gateway` to `api-gateway`, so 
 ## Legacy: Docker Compose
 
 Some developers still use **`docker-compose.yml.backup`** for an all-in-one Docker setup on the host. The **recommended** path for Paxaris is **Kubernetes + Argo CD + images on `main`** as described above.
+
+
+
+
+Keycloak: http://192.168.49.2:32080
+Identity Service: http://192.168.49.2:32087
+Product Management Service: http://192.168.49.2:32088
+Jaeger UI: http://192.168.49.2:31686
+Jaeger OTLP gRPC: http://192.168.49.2:30417
+Jaeger OTLP HTTP: http://192.168.49.2:30418
+API Gateway: http://api-gateway.default.svc.cluster.local:8085
+Paxo Frontend: http://paxo-frontend.default.svc.cluster.local
+Python Frontend: http://python-frontend.default.svc.cluster.local
+Python Foundry API: http://python-foundry-api.default.svc.cluster.local:8000
+Generated Frontend: http://finaltest36-admin-backend-test-frontend.default.svc.cluster.local
+Generated Backend: http://finaltest36-admin-backend-test-backend.default.svc.cluster.local:8080
+MySQL: mysql://mysql.default.svc.cluster.local:3306
+Python Foundry PostgreSQL: postgresql://python-foundry-postgres.default.svc.cluster.local:5432
+Python Foundry Redis: redis://python-foundry-redis.default.svc.cluster.local:6379
+Argo CD HTTP: http://argocd-server.argocd.svc.cluster.local
+Argo CD HTTPS: https://argocd-server.argocd.svc.cluster.local
