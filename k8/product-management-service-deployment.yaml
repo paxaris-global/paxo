@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: product-management-service
-          image: devopspaxarisglobalrepo/product-management-service:e77f24fad2fb2776634d4b163f8046721cf0f190
+          image: devopspaxarisglobalrepo/product-management-service:89b3ca55dafbe85ac97d4d41db49dab53baeac75
           imagePullPolicy: Always
           ports:
             - containerPort: 8088
