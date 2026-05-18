@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yatrify-admin-yatrifyproduct-backend
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: "app=devopspaxarisglobalrepo/yatrify-admin-yatrifyproduct-backend"
+    argocd-image-updater.argoproj.io/app.update-strategy: latest
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: yatrify-admin-yatrifyproduct-backend
+  template:
+    metadata:
+      labels:
+        app: yatrify-admin-yatrifyproduct-backend
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
+      containers:
+        - name: yatrify-admin-yatrifyproduct-backend
+          image: "devopspaxarisglobalrepo/yatrify-admin-yatrifyproduct-backend:latest"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: yatrify-admin-yatrifyproduct-backend
+spec:
+  selector:
+    app: yatrify-admin-yatrifyproduct-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 32401
+  type: NodePort
