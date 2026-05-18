@@ -19,7 +19,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: identity-service
-          image: devopspaxarisglobalrepo/identity-service:74276f26bdd962d9d390c11abeb1581e1b7a3754
+          image: devopspaxarisglobalrepo/identity-service:5d42d2a5cba6477237c140b3f91fe8fb0888217c
           imagePullPolicy: Always
           ports:
             - containerPort: 8087
