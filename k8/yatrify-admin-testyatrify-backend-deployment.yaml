@@ -15,15 +15,15 @@ spec:
       labels:
         app: yatrify-admin-testyatrify-backend
     spec:
-  initContainers:
-    - name: wait-for-postgres
-      image: postgres:16-alpine
-      command:
-        - sh
-        - -c
-        - until pg_isready -h yatrify-admin-testyatrify-backend-postgres -p 5432 -U yatrify_user; do echo waiting for postgres; sleep 2; done
       imagePullSecrets:
         - name: dockerhub-secret
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - until pg_isready -h yatrify-admin-testyatrify-backend-postgres -p 5432 -U yatrify_user; do echo waiting for postgres; sleep 2; done
       containers:
         - name: yatrify-admin-testyatrify-backend
           image: "devopspaxarisglobalrepo/yatrify-admin-testyatrify-backend:latest"
