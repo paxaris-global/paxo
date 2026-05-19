@@ -60,6 +60,9 @@ spec:
               value: "true"
             - name: PROVISIONING_EXTERNAL_HOST
               value: "192.168.49.2"
+            # Browser "Open product" links (use 127.0.0.1 with ./scripts/start-local-access.sh)
+            - name: PROVISIONING_BROWSER_HOST
+              value: "127.0.0.1"
 
 ---
 apiVersion: v1
