@@ -112,6 +112,25 @@ start_forward "product" "product-management-service" "$PAXO_PRODUCT_LOCAL_PORT" 
 start_forward "python-frontend" "python-frontend" "$PAXO_PYTHON_FRONTEND_LOCAL_PORT" 80
 start_forward "jaeger" "jaeger" "$PAXO_JAEGER_LOCAL_PORT" 16686
 
+# Product UI frontends (NodePort → same port on localhost so "Open product" works).
+echo
+echo "Product frontend port-forwards (for catalog Open product links):"
+while IFS=$'\t' read -r svc_name node_port; do
+  [[ -z "${svc_name:-}" || -z "${node_port:-}" ]] && continue
+  case "$svc_name" in
+    paxo-frontend|python-frontend) continue ;;
+  esac
+  if [[ ! "$svc_name" =~ -frontend$ ]]; then
+    continue
+  fi
+  forward_name="product-ui-${svc_name}"
+  start_forward "$forward_name" "$svc_name" "$node_port" 80
+  echo "  http://127.0.0.1:${node_port}/  →  svc/${svc_name}"
+done < <(
+  kubectl -n "$NS" get svc -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.ports[0].nodePort}{"\n"}{end}' 2>/dev/null \
+    | awk -F'\t' '$2 != "" && $2 != "0" && $2 != "<no value>"'
+)
+
 echo
 echo "Local URLs (open in browser — localhost or 127.0.0.1 both work):"
 echo "Frontend: http://localhost:${PAXO_FRONTEND_LOCAL_PORT}"
@@ -123,4 +142,5 @@ echo "Generate Product: http://localhost:${PAXO_PYTHON_FRONTEND_LOCAL_PORT}"
 echo "Jaeger UI: http://localhost:${PAXO_JAEGER_LOCAL_PORT}"
 echo
 echo "Keycloak OpenID config: http://localhost:${PAXO_KEYCLOAK_LOCAL_PORT}/realms/master/.well-known/openid-configuration"
+echo "Catalog Open product links use http://127.0.0.1:<nodePort>/ — requires the product UI forwards above."
 echo "These forwards auto-restart if kubectl drops. Stop all forwards with: ./scripts/stop-local-access.sh"

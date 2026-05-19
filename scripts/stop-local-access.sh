@@ -27,6 +27,12 @@ stop_if_running "product"
 stop_if_running "python-frontend"
 stop_if_running "jaeger"
 
+for pid_file in "$RUNTIME_DIR"/product-ui-*.pid; do
+  [[ -e "$pid_file" ]] || continue
+  name="$(basename "$pid_file" .pid)"
+  stop_if_running "$name"
+done
+
 # Extra cleanup if stale forwards exist without pid files.
 pkill -f "kubectl.*port-forward.*svc/paxo-frontend" >/dev/null 2>&1 || true
 pkill -f "kubectl.*port-forward.*svc/keycloak" >/dev/null 2>&1 || true
@@ -35,5 +41,6 @@ pkill -f "kubectl.*port-forward.*svc/identity-service" >/dev/null 2>&1 || true
 pkill -f "kubectl.*port-forward.*svc/product-management-service" >/dev/null 2>&1 || true
 pkill -f "kubectl.*port-forward.*svc/python-frontend" >/dev/null 2>&1 || true
 pkill -f "kubectl.*port-forward.*svc/jaeger" >/dev/null 2>&1 || true
+pkill -f "kubectl.*port-forward.*svc/.*-frontend" >/dev/null 2>&1 || true
 
 echo "All local forwards stopped."

@@ -16,7 +16,7 @@ spec:
         app: product-management-service
       annotations:
         paxaris.gitops/redeploy-at: "2026-05-19T16:05:00Z"
-        paxaris.gitops/pm-revision: "68e321e"
+        paxaris.gitops/pm-revision: "d37e07f"
     spec:
       containers:
         - name: product-management-service
@@ -63,6 +63,8 @@ spec:
             # Browser "Open product" links (use 127.0.0.1 with ./scripts/start-local-access.sh)
             - name: PROVISIONING_BROWSER_HOST
               value: "127.0.0.1"
+            - name: PROVISIONING_BROWSER_URL_MODE
+              value: "proxy"
 
 ---
 apiVersion: v1
