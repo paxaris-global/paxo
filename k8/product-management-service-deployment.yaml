@@ -15,8 +15,8 @@ spec:
       labels:
         app: product-management-service
       annotations:
-        paxaris.gitops/redeploy-at: "2026-05-19T14:15:00Z"
-        paxaris.gitops/pm-revision: "catalog-fe-only"
+        paxaris.gitops/redeploy-at: "2026-05-19T16:05:00Z"
+        paxaris.gitops/pm-revision: "68e321e"
     spec:
       containers:
         - name: product-management-service
