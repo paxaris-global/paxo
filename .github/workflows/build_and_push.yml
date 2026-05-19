@@ -194,6 +194,13 @@ jobs:
             sed -i "s|^\([[:space:]]*image:[[:space:]]*\).*|\1${TARGET_IMAGE}|" "$DEPLOYMENT_FILE"
           fi
 
+          if [ "$REPO_FULL" = "paxaris-global/paxo_frontend" ]; then
+            REDEPLOY_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+            SHORT_SHA="$(echo "$IMAGE_SHA" | cut -c1-8)"
+            sed -i "s|^\([[:space:]]*paxaris.gitops/redeploy-at:\).*|\1 \"${REDEPLOY_AT}\"|" "$DEPLOYMENT_FILE"
+            sed -i "s|^\([[:space:]]*paxaris.gitops/frontend-revision:\).*|\1 \"${SHORT_SHA}\"|" "$DEPLOYMENT_FILE"
+          fi
+
           if git diff --quiet; then
             echo "No manifest change detected."
             exit 0
