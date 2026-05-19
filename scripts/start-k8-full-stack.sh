@@ -43,14 +43,15 @@ fi
 
 echo
 echo "==> Waiting for deployments in namespace default (timeout 10m each)..."
-mapfile -t DEPLOYS < <(kubectl -n default get deploy -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
-if [[ ${#DEPLOYS[@]} -eq 0 ]]; then
+DEPLOY_COUNT=0
+while IFS= read -r d; do
+  [[ -z "$d" ]] && continue
+  DEPLOY_COUNT=$((DEPLOY_COUNT + 1))
+  echo "    rollout: $d"
+  kubectl -n default rollout status "deployment/${d}" --timeout=600s
+done < <(kubectl -n default get deploy -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
+if [[ "$DEPLOY_COUNT" -eq 0 ]]; then
   echo "Warning: no deployments found in default. Check kubectl context and namespace." >&2
-else
-  for d in "${DEPLOYS[@]}"; do
-    echo "    rollout: $d"
-    kubectl -n default rollout status "deployment/${d}" --timeout=600s
-  done
 fi
 
 echo
