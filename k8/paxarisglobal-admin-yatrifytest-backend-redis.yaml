@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paxarisglobal-admin-yatrifytest-backend-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: paxarisglobal-admin-yatrifytest-backend-redis
+  template:
+    metadata:
+      labels:
+        app: paxarisglobal-admin-yatrifytest-backend-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          command: ["redis-server"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paxarisglobal-admin-yatrifytest-backend-redis
+spec:
+  selector:
+    app: paxarisglobal-admin-yatrifytest-backend-redis
+  ports:
+    - port: 6379
+      targetPort: 6379
