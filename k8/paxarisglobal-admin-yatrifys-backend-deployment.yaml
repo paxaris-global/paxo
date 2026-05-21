@@ -15,13 +15,13 @@ spec:
       labels:
         app: paxarisglobal-admin-yatrifys-backend
     spec:
-  initContainers:
-    - name: wait-for-postgres
-      image: postgres:16-alpine
-      command:
-        - sh
-        - -c
-        - until pg_isready -h paxarisglobal-admin-yatrifys-backend-postgres -p 5432 -U yatrify_user; do echo waiting for postgres; sleep 2; done
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - until pg_isready -h paxarisglobal-admin-yatrifys-backend-postgres -p 5432 -U yatrify_user; do echo waiting for postgres; sleep 2; done
       imagePullSecrets:
         - name: dockerhub-secret
       containers:
