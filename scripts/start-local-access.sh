@@ -97,7 +97,7 @@ require_cmd kubectl
 require_cmd nc
 
 # Ensure required services exist before attempting forwards.
-for svc in paxo-frontend keycloak api-gateway identity-service product-management-service python-frontend jaeger; do
+for svc in paxo-frontend keycloak api-gateway identity-service product-management-service python-foundry-api python-frontend jaeger; do
   if ! kubectl -n "$NS" get svc "$svc" >/dev/null 2>&1; then
     echo "Error: Kubernetes service '$svc' not found." >&2
     exit 1
@@ -109,6 +109,7 @@ start_forward "keycloak" "keycloak" "$PAXO_KEYCLOAK_LOCAL_PORT" 8080
 start_forward "gateway" "api-gateway" "$PAXO_GATEWAY_LOCAL_PORT" 8085
 start_forward "identity" "identity-service" "$PAXO_IDENTITY_LOCAL_PORT" 8087
 start_forward "product" "product-management-service" "$PAXO_PRODUCT_LOCAL_PORT" 8088
+start_forward "python-foundry-api" "python-foundry-api" "$PAXO_PYTHON_FOUNDRY_API_LOCAL_PORT" 8000
 start_forward "python-frontend" "python-frontend" "$PAXO_PYTHON_FRONTEND_LOCAL_PORT" 80
 start_forward "jaeger" "jaeger" "$PAXO_JAEGER_LOCAL_PORT" 16686
 
@@ -138,7 +139,8 @@ echo "Keycloak: http://localhost:${PAXO_KEYCLOAK_LOCAL_PORT}"
 echo "Gateway: http://localhost:${PAXO_GATEWAY_LOCAL_PORT}"
 echo "Identity: http://localhost:${PAXO_IDENTITY_LOCAL_PORT}"
 echo "Product: http://localhost:${PAXO_PRODUCT_LOCAL_PORT}"
-echo "Generate Product: http://localhost:${PAXO_PYTHON_FRONTEND_LOCAL_PORT}"
+echo "Python Foundry API: http://localhost:${PAXO_PYTHON_FOUNDRY_API_LOCAL_PORT}/api/v1/health"
+echo "Generate Product (standalone UI): http://localhost:${PAXO_PYTHON_FRONTEND_LOCAL_PORT}"
 echo "Jaeger UI: http://localhost:${PAXO_JAEGER_LOCAL_PORT}"
 echo
 echo "Keycloak OpenID config: http://localhost:${PAXO_KEYCLOAK_LOCAL_PORT}/realms/master/.well-known/openid-configuration"
