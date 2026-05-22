@@ -21,6 +21,18 @@ data:
   OPENAI_MODEL: "gpt-4o-mini"
   EMBEDDING_MODEL: "text-embedding-3-small"
   LOG_LLM_PROMPTS: "false"
+  STORE_FINAL_PROJECT: "true"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: python-foundry-generated-projects
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
 ---
 apiVersion: v1
 kind: Secret
@@ -164,7 +176,8 @@ spec:
               mountPath: /app/downloads
       volumes:
         - name: generated-projects
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: python-foundry-generated-projects
         - name: chroma-data
           emptyDir: {}
         - name: downloads
@@ -223,7 +236,8 @@ spec:
               mountPath: /app/downloads
       volumes:
         - name: generated-projects
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: python-foundry-generated-projects
         - name: chroma-data
           emptyDir: {}
         - name: downloads
