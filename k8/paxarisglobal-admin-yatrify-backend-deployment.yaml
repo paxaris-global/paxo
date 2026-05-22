@@ -14,6 +14,9 @@ spec:
     metadata:
       labels:
         app: paxarisglobal-admin-yatrify-backend
+      annotations:
+        paxaris.gitops/redeploy-at: "2026-05-22T06:20:00Z"
+        paxaris.gitops/yatrify-backend-revision: "mailfix-20260522"
     spec:
       initContainers:
         - name: wait-for-postgres
@@ -26,7 +29,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: paxarisglobal-admin-yatrify-backend
-          image: "devopspaxarisglobalrepo/paxarisglobal-admin-yatrify-backend:latest"
+          image: "devopspaxarisglobalrepo/paxarisglobal-admin-yatrify-backend:mailfix-20260522"
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
