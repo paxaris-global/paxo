@@ -6,7 +6,7 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: "app=devopspaxarisglobalrepo/paxarisglobal-admin-yatrify-frontend"
     argocd-image-updater.argoproj.io/app.update-strategy: latest
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: paxarisglobal-admin-yatrify-frontend
