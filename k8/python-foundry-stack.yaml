@@ -38,15 +38,9 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: python-foundry-secrets
+  annotations:
+    paxaris.gitops/secret-data-managed-out-of-band: "true"
 type: Opaque
-stringData:
-  SECRET_KEY: "change_me_in_production"
-  POSTGRES_PASSWORD: "ai_codegen_pass"
-  OPENAI_API_KEY: ""
-  # Set real keys via kubectl apply after editing, or use ExternalSecrets / SealedSecrets — do not commit live tokens.
-  ANTHROPIC_API_KEY: ""
-  SEARCH_API_KEY: ""
-  GITHUB_TOKEN: ""
 ---
 apiVersion: apps/v1
 kind: Deployment
