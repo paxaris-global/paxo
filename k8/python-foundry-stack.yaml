@@ -34,14 +34,6 @@ spec:
     requests:
       storage: 20Gi
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: python-foundry-secrets
-  annotations:
-    paxaris.gitops/secret-data-managed-out-of-band: "true"
-type: Opaque
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -70,7 +62,7 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: python-foundry-secrets
+                  name: python-foundry-runtime-secrets
                   key: POSTGRES_PASSWORD
             - name: POSTGRES_DB
               valueFrom:
@@ -160,7 +152,7 @@ spec:
             - configMapRef:
                 name: python-foundry-config
             - secretRef:
-                name: python-foundry-secrets
+                name: python-foundry-runtime-secrets
           volumeMounts:
             - name: generated-projects
               mountPath: /app/generated_projects
@@ -220,7 +212,7 @@ spec:
             - configMapRef:
                 name: python-foundry-config
             - secretRef:
-                name: python-foundry-secrets
+                name: python-foundry-runtime-secrets
           volumeMounts:
             - name: generated-projects
               mountPath: /app/generated_projects
