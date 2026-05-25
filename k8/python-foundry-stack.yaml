@@ -149,7 +149,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: api
-          image: "devopspaxarisglobalrepo/python_foundry:bc95f669d136dfc26c9c8bf18bcb2a17abdcd63d"
+          image: "devopspaxarisglobalrepo/python_foundry:6105a84ace01d30d45a940d8e481d73dc5ae0752"
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -204,7 +204,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: worker
-          image: "devopspaxarisglobalrepo/python_foundry:bc95f669d136dfc26c9c8bf18bcb2a17abdcd63d"
+          image: "devopspaxarisglobalrepo/python_foundry:6105a84ace01d30d45a940d8e481d73dc5ae0752"
           imagePullPolicy: Always
           command:
             - celery
