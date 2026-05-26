@@ -16,11 +16,11 @@ spec:
         app: product-management-service
       annotations:
         paxaris.gitops/redeploy-at: "2026-05-22T16:00:00Z"
-        paxaris.gitops/pm-revision: "ef6db0b"
+        paxaris.gitops/pm-revision: "b4eb111"
     spec:
       containers:
         - name: product-management-service
-          image: devopspaxarisglobalrepo/product-management-service:4fd7c4690637e9f21f5a3aad87c84acdc91d1096
+          image: devopspaxarisglobalrepo/product-management-service:b4eb1119f5fbd4254e8fcb4e044abed788256ae9
           imagePullPolicy: Always
           ports:
             - containerPort: 8088
