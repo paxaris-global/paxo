@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paxarisglobal-admin-fashion-ecommerce-website-backend
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: "app=devopspaxarisglobalrepo/paxarisglobal-admin-fashion-ecommerce-website-backend"
+    argocd-image-updater.argoproj.io/app.update-strategy: latest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: paxarisglobal-admin-fashion-ecommerce-website-backend
+  template:
+    metadata:
+      labels:
+        app: paxarisglobal-admin-fashion-ecommerce-website-backend
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - until pg_isready -h paxarisglobal-admin-fashion-ecommerce-website-backend-postgres -p 5432 -U app_user; do echo waiting for postgres; sleep 2; done
+      imagePullSecrets:
+        - name: dockerhub-secret
+      containers:
+        - name: paxarisglobal-admin-fashion-ecommerce-website-backend
+          image: "devopspaxarisglobalrepo/paxarisglobal-admin-fashion-ecommerce-website-backend:latest"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: DB_URL
+              value: jdbc:postgresql://paxarisglobal-admin-fashion-ecommerce-website-backend-postgres:5432/app
+            - name: DB_USERNAME
+              value: app_user
+            - name: DB_PASSWORD
+              value: app_password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paxarisglobal-admin-fashion-ecommerce-website-backend
+spec:
+  selector:
+    app: paxarisglobal-admin-fashion-ecommerce-website-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 32416
+  type: NodePort
