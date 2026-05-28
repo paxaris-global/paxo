@@ -16,7 +16,7 @@ spec:
         app: product-management-service
       annotations:
         paxaris.gitops/redeploy-at: "2026-05-22T16:00:00Z"
-        paxaris.gitops/pm-revision: "dynamic-auto-host"
+        paxaris.gitops/pm-revision: "argocd-dynamic-nodeport-links"
     spec:
       containers:
         - name: product-management-service
@@ -60,11 +60,11 @@ spec:
               value: "true"
             - name: PROVISIONING_EXTERNAL_HOST
               value: "auto"
-            # Browser links should open via Minikube NodePort host.
+            # Browser links in product cards should open directly via localhost NodePorts.
             - name: PROVISIONING_BROWSER_HOST
-              value: "auto"
+              value: "127.0.0.1"
             - name: PROVISIONING_BROWSER_URL_MODE
-              value: "proxy"
+              value: "nodeport"
 
 ---
 apiVersion: v1
