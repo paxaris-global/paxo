@@ -21,7 +21,7 @@ spec:
           command:
             - sh
             - -c
-            - until pg_isready -h paxarisglobal-admin-yatrify-backend-postgres -p 5432 -U yatrify_user; do echo waiting for postgres; sleep 2; done
+            - until /usr/local/bin/pg_isready -h paxarisglobal-admin-yatrify-backend-postgres -p 5432 -U yatrify_user; do echo waiting for postgres; sleep 2; done
       imagePullSecrets:
         - name: dockerhub-secret
       containers:
@@ -43,6 +43,8 @@ spec:
               value: paxarisglobal-admin-yatrify-backend-redis
             - name: REDIS_PORT
               value: "6379"
+            - name: PAXARIS_GATEWAY_URL
+              value: "http://api-gateway:8085"
 ---
 apiVersion: v1
 kind: Service
