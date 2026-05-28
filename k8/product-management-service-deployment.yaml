@@ -60,9 +60,9 @@ spec:
               value: "true"
             - name: PROVISIONING_EXTERNAL_HOST
               value: "auto"
-            # Browser links should open via localhost NodePort on host machine.
+            # Browser links should open via Minikube NodePort host.
             - name: PROVISIONING_BROWSER_HOST
-              value: "127.0.0.1"
+              value: "auto"
             - name: PROVISIONING_BROWSER_URL_MODE
               value: "nodeport"
 
