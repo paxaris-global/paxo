@@ -184,7 +184,8 @@ spec:
   ports:
     - port: 8000
       targetPort: 8000
-  type: ClusterIP
+      nodePort: 32090
+  type: NodePort
 ---
 apiVersion: apps/v1
 kind: Deployment
