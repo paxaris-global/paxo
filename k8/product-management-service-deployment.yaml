@@ -60,9 +60,9 @@ spec:
               value: "true"
             - name: PROVISIONING_EXTERNAL_HOST
               value: "auto"
-            # Browser "Open product" links in Minikube mode use dynamic node IP URLs.
+            # Browser links should open via localhost NodePort on host machine.
             - name: PROVISIONING_BROWSER_HOST
-              value: "auto"
+              value: "127.0.0.1"
             - name: PROVISIONING_BROWSER_URL_MODE
               value: "nodeport"
 
