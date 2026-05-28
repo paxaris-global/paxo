@@ -64,7 +64,7 @@ spec:
             - name: PROVISIONING_BROWSER_HOST
               value: "auto"
             - name: PROVISIONING_BROWSER_URL_MODE
-              value: "nodeport"
+              value: "proxy"
 
 ---
 apiVersion: v1

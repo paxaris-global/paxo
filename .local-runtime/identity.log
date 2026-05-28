@@ -1,3 +1,10 @@
+date: invalid argument 's' for -I
+[] starting kubectl port-forward svc/identity-service 8087:8087
 Forwarding from 127.0.0.1:8087 -> 8087
 Forwarding from [::1]:8087 -> 8087
+Handling connection for 8087
+Handling connection for 8087
+Handling connection for 8087
+Handling connection for 8087
+Handling connection for 8087
 Handling connection for 8087

@@ -1,3 +1,5 @@
+date: invalid argument 's' for -I
+[] starting kubectl port-forward svc/product-management-service 8088:8088
 Forwarding from 127.0.0.1:8088 -> 8088
 Forwarding from [::1]:8088 -> 8088
 Handling connection for 8088

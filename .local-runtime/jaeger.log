@@ -1,3 +1,9 @@
+date: invalid argument 's' for -I
+[] starting kubectl port-forward svc/jaeger 16686:16686
 Forwarding from 127.0.0.1:16686 -> 16686
 Forwarding from [::1]:16686 -> 16686
+Handling connection for 16686
+Handling connection for 16686
+Handling connection for 16686
+Handling connection for 16686
 Handling connection for 16686
