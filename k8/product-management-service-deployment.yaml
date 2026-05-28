@@ -59,12 +59,12 @@ spec:
             - name: SHOWCASE_PLAYWRIGHT_ENABLED
               value: "true"
             - name: PROVISIONING_EXTERNAL_HOST
-              value: "192.168.49.2"
-            # Browser "Open product" links (use 127.0.0.1 with ./scripts/start-local-access.sh)
+              value: "auto"
+            # Browser "Open product" links in Minikube mode use dynamic node IP URLs.
             - name: PROVISIONING_BROWSER_HOST
-              value: "127.0.0.1"
+              value: "auto"
             - name: PROVISIONING_BROWSER_URL_MODE
-              value: "proxy"
+              value: "nodeport"
 
 ---
 apiVersion: v1
