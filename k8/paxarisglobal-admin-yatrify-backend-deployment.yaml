@@ -45,6 +45,10 @@ spec:
               value: "6379"
             - name: PAXARIS_GATEWAY_URL
               value: http://api-gateway:8085
+            - name: PAXARIS_REALM
+              value: paxarisglobal
+            - name: PAXARIS_PRODUCT_ID
+              value: yatrify
 ---
 apiVersion: v1
 kind: Service
