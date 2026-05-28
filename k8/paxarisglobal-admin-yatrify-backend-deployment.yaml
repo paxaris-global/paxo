@@ -43,6 +43,8 @@ spec:
               value: paxarisglobal-admin-yatrify-backend-redis
             - name: REDIS_PORT
               value: "6379"
+            - name: PAXARIS_GATEWAY_URL
+              value: http://api-gateway:8085
 ---
 apiVersion: v1
 kind: Service
