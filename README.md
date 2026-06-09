@@ -59,13 +59,25 @@ If Create Product fails with `401 Bad credentials`, create a **new** PAT and run
 
 ### Reach the UI/API from your laptop (cluster already running)
 
-Kubernetes **Services** are **ClusterIP** by default (no public URL in-git). For local browsing without `ng serve`:
+Pods are already running in Kubernetes (Argo CD). Choose **one** access mode:
+
+**Recommended — NodePort URLs (same ports as Kubernetes / Argo manifests):**
 
 ```bash
-./scripts/start-local-access.sh
+./scripts/start-minikube-access.sh
+# Open http://127.0.0.1:32000  (paxo-frontend Service NodePort)
 ```
 
-That **port-forwards** to pods already deployed by Argo (frontend `:4200`, gateway `:8085`, etc.). You are still hitting **the same images** Argo deployed—not a dev server.
+Binds `127.0.0.1` to the cluster Service ports declared in `k8/` (no `ng serve`). Stop with `./scripts/stop-minikube-access.sh`. Do not run `start-local-access.sh` at the same time.
+
+**Alternative — kubectl port-forward (dev convenience):**
+
+```bash
+./scripts/start-local-access-foreground.sh
+# Open http://localhost:4200
+```
+
+That **port-forwards** to the same Argo-deployed pods—not `ng serve`.
 
 If another local project already uses one of those ports, override only the host-facing port:
 

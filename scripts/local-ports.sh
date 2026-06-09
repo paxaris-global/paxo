@@ -10,3 +10,8 @@
 : "${PAXO_PYTHON_FOUNDRY_API_LOCAL_PORT:=8000}"
 : "${PAXO_JAEGER_LOCAL_PORT:=16686}"
 : "${PAXO_ARGOCD_LOCAL_PORT:=8081}"
+
+# Minikube NodePorts (used with minikube tunnel — see start-minikube-access.sh)
+: "${PAXO_FRONTEND_NODE_PORT:=32000}"
+: "${PAXO_GATEWAY_NODE_PORT:=32085}"
+: "${PAXO_KEYCLOAK_NODE_PORT:=32080}"

@@ -55,6 +55,7 @@ start_resilient_forward() {
   nohup bash -c '
     set -u
     child=""
+    ts() { date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date; }
     cleanup() {
       if [[ -n "${child:-}" ]] && kill -0 "$child" >/dev/null 2>&1; then
         kill "$child" >/dev/null 2>&1 || true
@@ -62,21 +63,24 @@ start_resilient_forward() {
       fi
       exit 0
     }
-    trap cleanup TERM INT EXIT
+    trap "" HUP
+    trap cleanup TERM INT
 
     while true; do
-      printf "[%s] starting kubectl port-forward svc/%s %s:%s\n" "$(date -Is)" "$1" "$2" "$3"
-      kubectl -n "$4" port-forward "svc/$1" "$2:$3" --address localhost &
+      printf "[%s] starting kubectl port-forward svc/%s %s:%s\n" "$(ts)" "$1" "$2" "$3"
+      kubectl -n "$4" port-forward "svc/$1" "$2:$3" --address 127.0.0.1 &
       child=$!
       wait "$child"
       exit_code=$?
       child=""
-      printf "[%s] port-forward svc/%s exited with code %s; restarting in 2s\n" "$(date -Is)" "$1" "$exit_code"
+      printf "[%s] port-forward svc/%s exited with code %s; restarting in 2s\n" "$(ts)" "$1" "$exit_code"
       sleep 2
     done
   ' _ "$service" "$local_port" "$remote_port" "$NS" >"$log_file" 2>&1 &
+  local wrapper_pid=$!
+  disown -h "$wrapper_pid" 2>/dev/null || true
 
-  echo $! >"$RUNTIME_DIR/$name.pid"
+  echo "$wrapper_pid" >"$RUNTIME_DIR/$name.pid"
 }
 
 start_forward() {
@@ -144,5 +148,5 @@ echo "Generate Product (standalone UI): http://localhost:${PAXO_PYTHON_FRONTEND_
 echo "Jaeger UI: http://localhost:${PAXO_JAEGER_LOCAL_PORT}"
 echo
 echo "Keycloak OpenID config: http://localhost:${PAXO_KEYCLOAK_LOCAL_PORT}/realms/master/.well-known/openid-configuration"
-echo "Catalog Open product links use http://127.0.0.1:<nodePort>/ — requires the product UI forwards above."
+echo "Catalog Open product links use http://localhost:${PAXO_FRONTEND_LOCAL_PORT}/product-ui/{realm}/{product}/"
 echo "These forwards auto-restart if kubectl drops. Stop all forwards with: ./scripts/stop-local-access.sh"

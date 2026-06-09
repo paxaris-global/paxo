@@ -15,8 +15,8 @@ spec:
       labels:
         app: product-management-service
       annotations:
-        paxaris.gitops/redeploy-at: "2026-06-09T10:45:00Z"
-        paxaris.gitops/pm-revision: "3e65b39"
+        paxaris.gitops/redeploy-at: "2026-06-09T11:35:00Z"
+        paxaris.gitops/pm-revision: "minikube-nodeport-32000"
     spec:
       containers:
         - name: product-management-service
@@ -65,7 +65,7 @@ spec:
             - name: PROVISIONING_BROWSER_URL_MODE
               value: "proxy"
             - name: PROVISIONING_PAXO_PUBLIC_BASE_URL
-              value: "http://127.0.0.1:4200"
+              value: "http://127.0.0.1:32000"
 
 ---
 apiVersion: v1
