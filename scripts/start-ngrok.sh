@@ -88,7 +88,18 @@ echo $! >"$RUNTIME_DIR/ngrok-foreground.pid"
 disown -h "$(cat "$RUNTIME_DIR/ngrok-foreground.pid")" 2>/dev/null || true
 
 wait_for_port "$PAXO_FRONTEND_LOCAL_PORT"
-wait_for_port 4040
+for ((i = 1; i <= 30; i++)); do
+  if nc -z 127.0.0.1 4040 >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
+if ! nc -z 127.0.0.1 4040 >/dev/null 2>&1; then
+  echo "Error: ngrok admin API (4040) not ready. See $RUNTIME_DIR/ngrok-foreground.log" >&2
+  tail -n 30 "$RUNTIME_DIR/ngrok-foreground.log" >&2 || true
+  exit 1
+fi
+sleep 2
 
 echo
 echo "Local endpoints:"
