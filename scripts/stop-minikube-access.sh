@@ -4,6 +4,15 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUNTIME_DIR="$ROOT_DIR/.local-runtime"
 
+if [[ -f "$RUNTIME_DIR/minikube-access-foreground.pid" ]]; then
+  pid="$(cat "$RUNTIME_DIR/minikube-access-foreground.pid" 2>/dev/null || true)"
+  if [[ -n "${pid:-}" ]] && kill -0 "$pid" >/dev/null 2>&1; then
+    kill "$pid" >/dev/null 2>&1 || true
+    echo "Stopped minikube-access-foreground (pid $pid)"
+  fi
+  rm -f "$RUNTIME_DIR/minikube-access-foreground.pid"
+fi
+
 for pid_file in "$RUNTIME_DIR"/np-*.pid "$RUNTIME_DIR"/minikube-tunnel.pid; do
   [[ -e "$pid_file" ]] || continue
   pid="$(cat "$pid_file" 2>/dev/null || true)"

@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Access Argo-deployed pods via localhost on the same ports as Kubernetes NodePorts.
-# No ng serve — traffic goes to in-cluster Services (paxo-frontend, api-gateway, …).
+# Start NodePort-aligned access to Argo-deployed Services (see start-minikube-access-foreground.sh).
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUNTIME_DIR="$ROOT_DIR/.local-runtime"
-NS="${KUBECTL_NAMESPACE:-default}"
+FOREGROUND_SCRIPT="$ROOT_DIR/scripts/start-minikube-access-foreground.sh"
+DAEMON_LOG="$RUNTIME_DIR/minikube-access-foreground.log"
+PID_FILE="$RUNTIME_DIR/minikube-access-foreground.pid"
 
 # shellcheck source=scripts/local-ports.sh
 source "$ROOT_DIR/scripts/local-ports.sh"
@@ -31,48 +32,6 @@ wait_for_port() {
   return 1
 }
 
-stop_forward() {
-  local name="$1"
-  if [[ -f "$RUNTIME_DIR/$name.pid" ]]; then
-    local pid
-    pid="$(cat "$RUNTIME_DIR/$name.pid" 2>/dev/null || true)"
-    if [[ -n "${pid:-}" ]] && kill -0 "$pid" >/dev/null 2>&1; then
-      kill "$pid" >/dev/null 2>&1 || true
-    fi
-    rm -f "$RUNTIME_DIR/$name.pid"
-  fi
-}
-
-start_nodeport_forward() {
-  local name="$1"
-  local service="$2"
-  local node_port="$3"
-  local remote_port="$4"
-  local log_file="$RUNTIME_DIR/$name.log"
-
-  stop_forward "$name"
-  pkill -f "kubectl.*port-forward.*svc/${service}.*${node_port}:${remote_port}" >/dev/null 2>&1 || true
-
-  nohup bash -c '
-    set -u
-    child=""
-    ts() { date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date; }
-    trap "" HUP
-    while true; do
-      printf "[%s] nodeport-forward svc/%s %s:%s\n" "$(ts)" "$1" "$2" "$3"
-      kubectl -n "$4" port-forward "svc/$1" "$2:$3" --address 127.0.0.1 &
-      child=$!
-      wait "$child" || true
-      child=""
-      sleep 2
-    done
-  ' _ "$service" "$node_port" "$remote_port" "$NS" >"$log_file" 2>&1 &
-  local wrapper_pid=$!
-  disown -h "$wrapper_pid" 2>/dev/null || true
-  echo "$wrapper_pid" >"$RUNTIME_DIR/$name.pid"
-  wait_for_port "$node_port"
-}
-
 require_cmd kubectl
 require_cmd nc
 
@@ -81,29 +40,29 @@ if ! kubectl cluster-info >/dev/null 2>&1; then
   exit 1
 fi
 
-# Stop legacy dev ports (4200, 8085, …) and any old tunnel attempt.
 "$ROOT_DIR/scripts/stop-local-access.sh" >/dev/null 2>&1 || true
 "$ROOT_DIR/scripts/stop-minikube-access.sh" >/dev/null 2>&1 || true
 pkill -f "kubectl.*port-forward" >/dev/null 2>&1 || true
 sleep 1
 
-for svc in paxo-frontend keycloak api-gateway identity-service product-management-service python-foundry-api python-frontend jaeger; do
-  if ! kubectl -n "$NS" get svc "$svc" >/dev/null 2>&1; then
-    echo "Error: service '$svc' not found in namespace $NS" >&2
-    exit 1
+if [[ -f "$PID_FILE" ]]; then
+  old_pid="$(cat "$PID_FILE" 2>/dev/null || true)"
+  if [[ -n "${old_pid:-}" ]] && kill -0 "$old_pid" >/dev/null 2>&1; then
+    echo "NodePort access already running (pid $old_pid)"
+  else
+    rm -f "$PID_FILE"
   fi
-done
+fi
 
-echo "Binding localhost to Kubernetes NodePorts (cluster Services via kubectl)…"
+if [[ ! -f "$PID_FILE" ]]; then
+  echo "Starting NodePort forwards to Kubernetes Services…"
+  chmod +x "$FOREGROUND_SCRIPT"
+  nohup "$FOREGROUND_SCRIPT" >>"$DAEMON_LOG" 2>&1 &
+  echo $! >"$PID_FILE"
+  disown -h "$(cat "$PID_FILE")" 2>/dev/null || true
+fi
 
-start_nodeport_forward "np-frontend" "paxo-frontend" "$PAXO_FRONTEND_NODE_PORT" 80
-start_nodeport_forward "np-keycloak" "keycloak" "$PAXO_KEYCLOAK_NODE_PORT" 8080
-start_nodeport_forward "np-gateway" "api-gateway" "$PAXO_GATEWAY_NODE_PORT" 8085
-start_nodeport_forward "np-identity" "identity-service" 32087 8087
-start_nodeport_forward "np-product" "product-management-service" 32088 8088
-start_nodeport_forward "np-python-api" "python-foundry-api" 32090 8000
-start_nodeport_forward "np-python-ui" "python-frontend" 32081 80
-start_nodeport_forward "np-jaeger" "jaeger" 31686 16686
+wait_for_port "$PAXO_FRONTEND_NODE_PORT"
 
 FRONTEND_URL="http://127.0.0.1:${PAXO_FRONTEND_NODE_PORT}"
 
@@ -118,5 +77,6 @@ echo "Jaeger:           http://127.0.0.1:31686"
 echo
 echo "Open product:     ${FRONTEND_URL}/product-ui/{realm}/{product}/"
 echo
-echo "Logs: $RUNTIME_DIR/np-*.log"
+echo "Logs: $DAEMON_LOG"
 echo "Stop: $ROOT_DIR/scripts/stop-minikube-access.sh"
+echo "Or run in a terminal tab: $FOREGROUND_SCRIPT"
