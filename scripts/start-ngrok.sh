@@ -3,8 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUNTIME_DIR="$ROOT_DIR/.ngrok-runtime"
-NGROK_CONFIG="$ROOT_DIR/ngrok/ngrok.yml"
-NGROK_SYSTEM_CONFIG="${HOME}/Library/Application Support/ngrok/ngrok.yml"
+FOREGROUND_SCRIPT="$ROOT_DIR/scripts/start-ngrok-foreground.sh"
 DOMAIN_SUFFIX="${NGROK_DOMAIN_SUFFIX:-ngrok-free.app}"
 NS="${KUBECTL_NAMESPACE:-default}"
 
@@ -47,124 +46,64 @@ stop_if_running() {
   fi
 }
 
-print_usage() {
-  echo "Usage:" >&2
-  echo "  ./scripts/start-ngrok.sh [frontend|keycloak] [custom-domain]" >&2
-  echo >&2
-  echo "Examples:" >&2
-  echo "  ./scripts/start-ngrok.sh" >&2
-  echo "  ./scripts/start-ngrok.sh frontend paxaris-global-main.ngrok-free.app" >&2
-  echo "  ./scripts/start-ngrok.sh keycloak" >&2
-}
-
 require_cmd kubectl
 require_cmd ngrok
 require_cmd nc
+require_cmd curl
 
-if [[ ! -f "$NGROK_CONFIG" ]]; then
-  echo "Error: ngrok config not found at $NGROK_CONFIG" >&2
+if [[ "$TARGET_INPUT" == "keycloak" ]]; then
+  echo "Error: use start-ngrok.sh for frontend only; Keycloak is reached via nginx /identity." >&2
   exit 1
 fi
 
-TARGET=""
-SERVICE_NAME=""
-LOCAL_PORT=""
-REMOTE_PORT=""
-DISPLAY_NAME=""
-
-case "$TARGET_INPUT" in
-  frontend)
-    TARGET="frontend"
-    SERVICE_NAME="paxo-frontend"
-    LOCAL_PORT="$PAXO_FRONTEND_LOCAL_PORT"
-    REMOTE_PORT="80"
-    DISPLAY_NAME="Frontend"
-    ;;
-  keycloak)
-    TARGET="keycloak"
-    SERVICE_NAME="keycloak"
-    LOCAL_PORT="$PAXO_KEYCLOAK_LOCAL_PORT"
-    REMOTE_PORT="8080"
-    DISPLAY_NAME="Keycloak"
-    ;;
-  "")
-    TARGET="frontend"
-    SERVICE_NAME="paxo-frontend"
-    LOCAL_PORT="$PAXO_FRONTEND_LOCAL_PORT"
-    REMOTE_PORT="80"
-    DISPLAY_NAME="Frontend"
-    ;;
-  *)
-    # Backward compatibility: first argument can still be domain.
-    TARGET="frontend"
-    SERVICE_NAME="paxo-frontend"
-    LOCAL_PORT="$PAXO_FRONTEND_LOCAL_PORT"
-    REMOTE_PORT="80"
-    DISPLAY_NAME="Frontend"
-    CUSTOM_DOMAIN_INPUT="$TARGET_INPUT"
-    ;;
-esac
-
-if ! kubectl -n "$NS" get svc "$SERVICE_NAME" >/dev/null 2>&1; then
-  echo "Error: Kubernetes service '$SERVICE_NAME' not found." >&2
+if ! kubectl -n "$NS" get svc paxo-frontend >/dev/null 2>&1; then
+  echo "Error: Kubernetes service 'paxo-frontend' not found." >&2
   exit 1
 fi
 
-# Stop stale background processes from previous runs.
-stop_if_running "port-forward-frontend"
-stop_if_running "port-forward-keycloak"
-stop_if_running "ngrok"
+"$ROOT_DIR/scripts/stop-minikube-access.sh" >/dev/null 2>&1 || true
+"$ROOT_DIR/scripts/stop-local-access.sh" >/dev/null 2>&1 || true
+"$ROOT_DIR/scripts/stop-ngrok.sh" >/dev/null 2>&1 || true
+pkill -f "kubectl.*port-forward" >/dev/null 2>&1 || true
+sleep 1
 
-nohup kubectl -n "$NS" port-forward "svc/$SERVICE_NAME" "$LOCAL_PORT:$REMOTE_PORT" >"$RUNTIME_DIR/port-forward-$TARGET.log" 2>&1 &
-echo $! >"$RUNTIME_DIR/port-forward-$TARGET.pid"
-
-wait_for_port "$LOCAL_PORT"
-
-CUSTOM_DOMAIN=""
+export NGROK_CUSTOM_DOMAIN=""
 if [[ -n "$CUSTOM_DOMAIN_INPUT" ]]; then
   if [[ "$CUSTOM_DOMAIN_INPUT" == *.* ]]; then
-    CUSTOM_DOMAIN="$CUSTOM_DOMAIN_INPUT"
+    export NGROK_CUSTOM_DOMAIN="$CUSTOM_DOMAIN_INPUT"
   else
-    CUSTOM_DOMAIN="$CUSTOM_DOMAIN_INPUT.$DOMAIN_SUFFIX"
+    export NGROK_CUSTOM_DOMAIN="$CUSTOM_DOMAIN_INPUT.$DOMAIN_SUFFIX"
+  fi
+elif [[ -n "$TARGET_INPUT" && "$TARGET_INPUT" != "frontend" ]]; then
+  if [[ "$TARGET_INPUT" == *.* ]]; then
+    export NGROK_CUSTOM_DOMAIN="$TARGET_INPUT"
+  else
+    export NGROK_CUSTOM_DOMAIN="$TARGET_INPUT.$DOMAIN_SUFFIX"
   fi
 fi
 
-if [[ -n "$CUSTOM_DOMAIN" ]]; then
-  nohup ngrok http "$LOCAL_PORT" --domain="$CUSTOM_DOMAIN" \
-    --config "$NGROK_SYSTEM_CONFIG" --config "$NGROK_CONFIG" \
-    >"$RUNTIME_DIR/ngrok.log" 2>&1 &
-else
-  nohup ngrok http "$LOCAL_PORT" \
-    --config "$NGROK_SYSTEM_CONFIG" --config "$NGROK_CONFIG" \
-    >"$RUNTIME_DIR/ngrok.log" 2>&1 &
-fi
-echo $! >"$RUNTIME_DIR/ngrok.pid"
+chmod +x "$FOREGROUND_SCRIPT"
+nohup "$FOREGROUND_SCRIPT" >>"$RUNTIME_DIR/ngrok-foreground.log" 2>&1 &
+echo $! >"$RUNTIME_DIR/ngrok-foreground.pid"
+disown -h "$(cat "$RUNTIME_DIR/ngrok-foreground.pid")" 2>/dev/null || true
 
-if ! wait_for_port 4040; then
-  echo "Error: ngrok did not start correctly." >&2
-  if grep -q "ERR_NGROK_4018" "$RUNTIME_DIR/ngrok.log" 2>/dev/null; then
-    echo "ngrok authentication is required." >&2
-    echo "Run: ngrok config add-authtoken <YOUR_NGROK_AUTHTOKEN>" >&2
-  fi
-  echo "--- ngrok log ---" >&2
-  tail -n 40 "$RUNTIME_DIR/ngrok.log" >&2 || true
-  exit 1
-fi
+wait_for_port "$PAXO_FRONTEND_LOCAL_PORT"
+wait_for_port 4040
 
 echo
 echo "Local endpoints:"
-echo "  $DISPLAY_NAME:    http://127.0.0.1:$LOCAL_PORT"
+echo "  Frontend:    http://127.0.0.1:$PAXO_FRONTEND_LOCAL_PORT"
 echo
 
-if [[ -n "$CUSTOM_DOMAIN" ]]; then
+if [[ -n "$NGROK_CUSTOM_DOMAIN" ]]; then
   echo "Requested domain:"
-  echo "  https://$CUSTOM_DOMAIN"
+  echo "  https://$NGROK_CUSTOM_DOMAIN"
   echo
 fi
 
 echo "Public ngrok tunnels:"
 if command -v jq >/dev/null 2>&1; then
-  TUNNELS_OUTPUT="$(curl -s http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[] | "  " + .name + ": " + .public_url')"
+  TUNNELS_OUTPUT="$(curl -s http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[] | "  " + (.name // "tunnel") + ": " + .public_url')"
 else
   TUNNELS_OUTPUT="$(curl -s http://127.0.0.1:4040/api/tunnels | grep -o '"public_url":"[^"]*"' | sed 's/"public_url":"/  /;s/"$//')"
 fi
@@ -173,10 +112,40 @@ if [[ -n "$TUNNELS_OUTPUT" ]]; then
   echo "$TUNNELS_OUTPUT"
 else
   echo "  (no active tunnels reported)"
-  echo "--- ngrok log ---" >&2
-  tail -n 40 "$RUNTIME_DIR/ngrok.log" >&2 || true
+  tail -n 40 "$RUNTIME_DIR/ngrok-foreground.log" >&2 || true
   exit 1
 fi
 
+NGROK_PUBLIC_URL=""
+if command -v jq >/dev/null 2>&1; then
+  NGROK_PUBLIC_URL="$(curl -s http://127.0.0.1:4040/api/tunnels \
+    | jq -r '[.tunnels[] | select(.public_url | startswith("https://")) | .public_url][0] // empty')"
+  if [[ -z "$NGROK_PUBLIC_URL" ]]; then
+    NGROK_PUBLIC_URL="$(curl -s http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[0].public_url // empty')"
+  fi
+else
+  NGROK_PUBLIC_URL="$(curl -s http://127.0.0.1:4040/api/tunnels \
+    | grep -o '"public_url":"https://[^"]*"' | head -1 | sed 's/"public_url":"//;s/"$//')"
+fi
+
+if [[ -z "$NGROK_PUBLIC_URL" ]]; then
+  echo "Warning: could not detect ngrok public URL." >&2
+else
+  NGROK_PUBLIC_URL="${NGROK_PUBLIC_URL%/}"
+  echo "$NGROK_PUBLIC_URL" >"$RUNTIME_DIR/public-url.txt"
+  echo
+  echo "Updating product-management-service PROVISIONING_PAXO_PUBLIC_BASE_URL…"
+  kubectl -n "$NS" set env deployment/product-management-service \
+    "PROVISIONING_PAXO_PUBLIC_BASE_URL=${NGROK_PUBLIC_URL}" >/dev/null
+  kubectl -n "$NS" rollout status deployment/product-management-service --timeout=120s >/dev/null
+  echo "  PROVISIONING_PAXO_PUBLIC_BASE_URL=${NGROK_PUBLIC_URL}"
+  echo
+  echo "Open Paxo:        ${NGROK_PUBLIC_URL}/"
+  echo "Open product:     ${NGROK_PUBLIC_URL}/product-ui/{realm}/{product-id}/"
+  echo "Example:"
+  echo "  ${NGROK_PUBLIC_URL}/product-ui/paxarisglobal/fashion-ecommerse-website/"
+fi
+
 echo
-echo "Use './scripts/stop-ngrok.sh' to stop all ngrok/port-forward processes."
+echo "Logs: $RUNTIME_DIR/ngrok-foreground.log"
+echo "Stop: ./scripts/stop-ngrok.sh"

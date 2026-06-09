@@ -19,6 +19,7 @@ stop_from_pid_file() {
   fi
 }
 
+stop_from_pid_file "ngrok-foreground"
 stop_from_pid_file "ngrok"
 stop_from_pid_file "port-forward-frontend"
 stop_from_pid_file "port-forward-keycloak"
