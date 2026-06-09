@@ -15,8 +15,8 @@ spec:
       labels:
         app: product-management-service
       annotations:
-        paxaris.gitops/redeploy-at: "2026-05-22T16:00:00Z"
-        paxaris.gitops/pm-revision: "argocd-dynamic-nodeport-links"
+        paxaris.gitops/redeploy-at: "2026-06-09T10:45:00Z"
+        paxaris.gitops/pm-revision: "3e65b39"
     spec:
       containers:
         - name: product-management-service
@@ -60,11 +60,12 @@ spec:
               value: "true"
             - name: PROVISIONING_EXTERNAL_HOST
               value: "auto"
-            # Browser links in product cards should open directly via localhost NodePorts.
             - name: PROVISIONING_BROWSER_HOST
               value: "127.0.0.1"
             - name: PROVISIONING_BROWSER_URL_MODE
-              value: "nodeport"
+              value: "proxy"
+            - name: PROVISIONING_PAXO_PUBLIC_BASE_URL
+              value: "http://127.0.0.1:4200"
 
 ---
 apiVersion: v1
