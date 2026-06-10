@@ -13,14 +13,14 @@ spec:
         app: paxo-frontend
       annotations:
         # Bump when paxo_frontend image tag stays :latest so Argo rolls pods after CI pushes.
-        paxaris.gitops/redeploy-at: "2026-06-09T11:40:53Z"
-        paxaris.gitops/frontend-revision: "bcb4b73b"
+        paxaris.gitops/redeploy-at: "2026-06-10T06:44:58Z"
+        paxaris.gitops/frontend-revision: "d7f012e4"
     spec:
       imagePullSecrets:
         - name: dockerhub-secret
       containers:
         - name: paxo-frontend
-          image: devopspaxarisglobalrepo/paxo_frontend:bcb4b73bcbf50467b2385186fdd0b1bb54ccc373
+          image: devopspaxarisglobalrepo/paxo_frontend:d7f012e435051099f381db9bde049795b7949095
           imagePullPolicy: Always
           ports:
             - containerPort: 80
