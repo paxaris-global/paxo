@@ -89,6 +89,25 @@ Available overrides are defined in `scripts/local-ports.sh`: `PAXO_FRONTEND_LOCA
 
 ---
 
+## Admin dashboards (Keycloak + Argo CD) while ngrok runs
+
+Ngrok exposes **Paxo frontend only**. Keycloak and Argo CD stay on **localhost** (separate port-forwards).
+
+`./scripts/start-ngrok.sh` now starts admin dashboards automatically after ngrok. Or run manually:
+
+```bash
+./scripts/start-admin-dashboards.sh
+```
+
+| Dashboard | URL | Login |
+|-----------|-----|--------|
+| Keycloak admin | `http://localhost:32080/admin/` | `admin` / `admin@123` |
+| Argo CD | `http://127.0.0.1:8081` | `admin` / `./scripts/print-argocd-admin-password.sh` |
+
+Open each URL in its **own browser tab** (not inside the ngrok page). Stop with `./scripts/stop-admin-dashboards.sh`.
+
+---
+
 ## Optional: public URL with ngrok
 
 Prerequisites: Minikube/cluster running, workloads deployed, `kubectl` + `ngrok` configured.
@@ -133,3 +152,30 @@ Python Foundry PostgreSQL: postgresql://python-foundry-postgres.default.svc.clus
 Python Foundry Redis: redis://python-foundry-redis.default.svc.cluster.local:6379
 Argo CD HTTP: http://argocd-server.argocd.svc.cluster.local
 Argo CD HTTPS: https://argocd-server.argocd.svc.cluster.local
+
+
+
+run project 
+
+Path (run everything from here):
+
+cd /Users/m5/paxarisGateway/paxo
+Commands:
+
+minikube start
+kubectl apply -n argocd -f k8/argocd-app.yaml
+./scripts/start-k8-full-stack.sh
+chmod +x scripts/sync-github-credentials.sh
+./scripts/sync-github-credentials.sh --prompt
+./scripts/start-minikube-access-foreground.sh
+Open: http://127.0.0.1:32000
+
+Optional:
+
+./scripts/start-argocd-ui.sh
+./scripts/start-ngrok-foreground.sh
+./scripts/stop-minikube-access.sh
+./scripts/stop-ngrok.sh
+Note: Use ./scripts/... from /Users/m5/paxarisGateway/paxo, or the full path:
+
+/Users/m5/paxarisGateway/paxo/scripts/start-minikube-access-foreground.sh

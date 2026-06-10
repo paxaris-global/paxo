@@ -64,7 +64,8 @@ fi
 "$ROOT_DIR/scripts/stop-minikube-access.sh" >/dev/null 2>&1 || true
 "$ROOT_DIR/scripts/stop-local-access.sh" >/dev/null 2>&1 || true
 "$ROOT_DIR/scripts/stop-ngrok.sh" >/dev/null 2>&1 || true
-pkill -f "kubectl.*port-forward" >/dev/null 2>&1 || true
+# Only stop Paxo frontend forwards — keep Keycloak/Argo CD admin dashboards alive.
+pkill -f "kubectl.*port-forward.*svc/paxo-frontend" >/dev/null 2>&1 || true
 sleep 1
 
 export NGROK_CUSTOM_DOMAIN=""
@@ -158,5 +159,9 @@ else
 fi
 
 echo
+echo "Starting Keycloak + Argo CD admin dashboards (local only, alongside ngrok)…"
+"$ROOT_DIR/scripts/start-admin-dashboards.sh" || true
+echo
 echo "Logs: $RUNTIME_DIR/ngrok-foreground.log"
-echo "Stop: ./scripts/stop-ngrok.sh"
+echo "Stop ngrok:        ./scripts/stop-ngrok.sh"
+echo "Stop dashboards:   ./scripts/stop-admin-dashboards.sh"

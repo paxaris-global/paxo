@@ -28,6 +28,5 @@ stop_from_pid_file "port-forward-keycloak"
 pkill -f "ngrok start --all" >/dev/null 2>&1 || true
 pkill -f "ngrok http" >/dev/null 2>&1 || true
 pkill -f "kubectl.*port-forward.*svc/paxo-frontend" >/dev/null 2>&1 || true
-pkill -f "kubectl.*port-forward.*svc/keycloak" >/dev/null 2>&1 || true
 
-echo "Done."
+echo "Done. (Keycloak/Argo CD dashboards left running — stop with ./scripts/stop-admin-dashboards.sh)"
