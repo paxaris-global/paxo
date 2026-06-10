@@ -24,6 +24,13 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8088
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1536Mi"
+              cpu: "1000m"
           env:
             - name: SPRING_DATASOURCE_URL
               value: "jdbc:mysql://mysql:3306/centralized_data?createDatabaseIfNotExist=true"
@@ -57,7 +64,9 @@ spec:
                   name: github-credentials
                   key: DOCKER_PASSWORD
             - name: SHOWCASE_PLAYWRIGHT_ENABLED
-              value: "true"
+              value: "false"
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Xms256m -Xmx768m"
             - name: PROVISIONING_EXTERNAL_HOST
               value: "auto"
             - name: PROVISIONING_BROWSER_HOST
