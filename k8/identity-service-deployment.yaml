@@ -19,7 +19,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: identity-service
-          image: paxarisdocker/identity-service:8b2f7433892ce811fe7db2d707cf98434e1d3546
+          image: paxarisdocker/identity-service:2e937364e199050d35381f1091d76319f3dc69f0
           imagePullPolicy: Always
           ports:
             - containerPort: 8087
