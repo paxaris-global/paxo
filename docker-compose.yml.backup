@@ -60,7 +60,7 @@ services:
   identity-service:
     build:
       context: ../identity_service
-    image: devopspaxarisglobalrepo/identity-service:latest
+    image: paxarisdocker/identity-service:latest
     container_name: identity-service
 
     ports:
@@ -101,7 +101,7 @@ services:
     build:
       context: ../product-management-service
       dockerfile: Dockerfile
-    image: devopspaxarisglobalrepo/product-management-service:latest
+    image: paxarisdocker/product-management-service:latest
     container_name: project-manager
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/centralized_data?createDatabaseIfNotExist=true
@@ -134,7 +134,7 @@ services:
     build:
       context: ../api-gateway
       dockerfile: Dockerfile
-    image: devopspaxarisglobalrepo/apigateway:latest
+    image: paxarisdocker/apigateway:latest
     container_name: api-gateway
     ports:
       - "8085:8085"
@@ -161,7 +161,7 @@ services:
   # Angular Frontend
   # -----------------------------
   paxo-frontend:
-    image: devopspaxarisglobalrepo/paxo_frontend:latest
+    image: paxarisdocker/paxo_frontend:latest
     container_name: paxo-frontend
     ports:
       - "4200:80"
@@ -178,7 +178,7 @@ services:
   # new created image from docker
   # -----------------------------
 #  paxarisglobal-admin-producttest1:
-#   image: devopspaxarisglobalrepo/paxarisglobal-admin-producttest1:latest
+#   image: paxarisdocker/paxarisglobal-admin-producttest1:latest
 #   container_name: paxarisglobal-admin-producttest1
 #   ports:
 #     - "8083:8083"
@@ -197,7 +197,7 @@ services:
 #   restart: unless-stopped
 
 # test1-ClientTracking-rohit:
-#     image: devopspaxarisglobalrepo/test1-ClientTracking-rohit:latest
+#     image: paxarisdocker/test1-ClientTracking-rohit:latest
 #     container_name: test1-ClientTracking-rohit
 #     ports:
 #       - "8083:8083"

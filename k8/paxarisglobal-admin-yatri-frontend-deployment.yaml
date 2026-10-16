@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: paxarisglobal-admin-yatri-frontend
   annotations:
-    argocd-image-updater.argoproj.io/image-list: "app=devopspaxarisglobalrepo/paxarisglobal-admin-yatri-frontend"
+    argocd-image-updater.argoproj.io/image-list: "app=paxarisdocker/paxarisglobal-admin-yatri-frontend"
     argocd-image-updater.argoproj.io/app.update-strategy: latest
 spec:
   replicas: 1
@@ -19,7 +19,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: paxarisglobal-admin-yatri-frontend
-          image: "devopspaxarisglobalrepo/paxarisglobal-admin-yatri-frontend:latest"
+          image: "paxarisdocker/paxarisglobal-admin-yatri-frontend:latest"
           imagePullPolicy: Always
           ports:
             - containerPort: 80

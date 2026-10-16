@@ -20,7 +20,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: paxo-frontend
-          image: devopspaxarisglobalrepo/paxo_frontend:a553e0e875a99abdbd519b4786ca82214ca0ddee
+          image: paxarisdocker/paxo_frontend:a553e0e875a99abdbd519b4786ca82214ca0ddee
           imagePullPolicy: Always
           ports:
             - containerPort: 80

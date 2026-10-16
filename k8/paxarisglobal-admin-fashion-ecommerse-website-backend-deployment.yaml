@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: paxarisglobal-admin-fashion-ecommerse-website-backend
   annotations:
-    argocd-image-updater.argoproj.io/image-list: "app=devopspaxarisglobalrepo/paxarisglobal-admin-fashion-ecommerse-website-backend"
+    argocd-image-updater.argoproj.io/image-list: "app=paxarisdocker/paxarisglobal-admin-fashion-ecommerse-website-backend"
     argocd-image-updater.argoproj.io/app.update-strategy: latest
 spec:
   replicas: 1
@@ -26,7 +26,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: paxarisglobal-admin-fashion-ecommerse-website-backend
-          image: "devopspaxarisglobalrepo/paxarisglobal-admin-fashion-ecommerse-website-backend:latest"
+          image: "paxarisdocker/paxarisglobal-admin-fashion-ecommerse-website-backend:latest"
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

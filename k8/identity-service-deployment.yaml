@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: identity-service
   annotations:
-    argocd-image-updater.argoproj.io/image-list: "devopspaxarisglobalrepo/identity-service"
+    argocd-image-updater.argoproj.io/image-list: "paxarisdocker/identity-service"
     argocd-image-updater.argoproj.io/identity-service.update-strategy: latest
 spec:
   selector:
@@ -19,7 +19,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: identity-service
-          image: devopspaxarisglobalrepo/identity-service:4fb321437859fff1e94dc55075254fa0a51cffe0
+          image: paxarisdocker/identity-service:4fb321437859fff1e94dc55075254fa0a51cffe0
           imagePullPolicy: Always
           ports:
             - containerPort: 8087

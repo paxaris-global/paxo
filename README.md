@@ -31,7 +31,7 @@ kubectl apply -n argocd -f k8/argocd-app.yaml
 | Optional demos | `finaltest36-*` deployments |
 | Child apps | `finaltest35-*` Application CRs → separate repos (if enabled) |
 
-Images come from Docker Hub (e.g. `devopspaxarisglobalrepo/...`), tagged by **GitHub Actions** in `paxaris-global/paxo` (central image builder + manifest updates on **`main`**).
+Images come from Docker Hub (e.g. `paxarisdocker/...`), tagged by **GitHub Actions** in `paxaris-global/paxo` (central image builder + manifest updates on **`main`**).
 
 ### Day-to-day workflow (no `ng serve`)
 

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: product-management-service
   annotations:
-    argocd-image-updater.argoproj.io/image-list: "product=devopspaxarisglobalrepo/product-management-service"
+    argocd-image-updater.argoproj.io/image-list: "product=paxarisdocker/product-management-service"
     argocd-image-updater.argoproj.io/product.update-strategy: latest
 spec:
   selector:
@@ -20,7 +20,11 @@ spec:
     spec:
       containers:
         - name: product-management-service
+<<<<<<< Updated upstream
           image: devopspaxarisglobalrepo/product-management-service:b516d62defaf1e34d887abcd20a58d8bab6a2b40
+=======
+          image: paxarisdocker/product-management-service:34b4ae7d78259abf34a82257ba9b584e1421a702
+>>>>>>> Stashed changes
           imagePullPolicy: Always
           ports:
             - containerPort: 8088

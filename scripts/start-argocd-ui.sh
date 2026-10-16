@@ -73,13 +73,13 @@ nohup bash -c '
   trap cleanup TERM INT EXIT
 
   while true; do
-    printf "[%s] starting kubectl port-forward svc/argocd-server %s:80\n" "$(date -Is)" "$1"
-    kubectl -n argocd port-forward svc/argocd-server "$1:80" --address localhost &
+    printf "[%s] starting kubectl port-forward svc/argocd-server %s:80\n" "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" "$1"
+    kubectl -n argocd port-forward svc/argocd-server "$1:80" --address 127.0.0.1 &
     child=$!
     wait "$child"
     exit_code=$?
     child=""
-    printf "[%s] argocd-server port-forward exited with code %s; restarting in 2s\n" "$(date -Is)" "$exit_code"
+    printf "[%s] argocd-server port-forward exited with code %s; restarting in 2s\n" "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" "$exit_code"
     sleep 2
   done
 ' _ "$LOCAL_PORT" >"$RUNTIME_DIR/argocd-ui.log" 2>&1 &

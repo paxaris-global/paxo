@@ -6,7 +6,7 @@ type: Opaque
 stringData:
   GITHUB_TOKEN: ${GITHUB_TOKEN}
   GITHUB_ORG: PaxarisGlobal
-  DOCKER_USERNAME: devopspaxarisglobalrepo
+  DOCKER_USERNAME: paxarisdocker
   DOCKER_PASSWORD: dckr_pat_iMNdmvRjzkI4vFj1X98FF1_bPLI
 
 
@@ -16,7 +16,7 @@ kind: Deployment
 metadata:
   name: api-gateway
   annotations:
-    argocd-image-updater.argoproj.io/image-list: devopspaxarisglobalrepo/apigateway
+    argocd-image-updater.argoproj.io/image-list: paxarisdocker/apigateway
     argocd-image-updater.argoproj.io/apigateway.update-strategy: latest
 spec:
   selector:
@@ -32,7 +32,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: api-gateway
-          image: devopspaxarisglobalrepo/apigateway:latest
+          image: paxarisdocker/apigateway:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8085

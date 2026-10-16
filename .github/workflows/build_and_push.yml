@@ -42,7 +42,7 @@ jobs:
             IMAGE_REPO="$PAYLOAD_REPO"
           else
             REPO_NAME='${{ github.event.client_payload.repo }}'
-            IMAGE_REPO="devopspaxarisglobalrepo/$(echo "$REPO_NAME" | awk -F/ '{print tolower($2)}')"
+            IMAGE_REPO="paxarisdocker/$(echo "$REPO_NAME" | awk -F/ '{print tolower($2)}')"
           fi
           echo "image_repo=$IMAGE_REPO" >> "$GITHUB_OUTPUT"
 
@@ -55,7 +55,7 @@ jobs:
             IMAGE_REPO="$PAYLOAD_REPO"
           else
             REPO_NAME='${{ github.event.client_payload.repo }}'
-            IMAGE_REPO="devopspaxarisglobalrepo/$(echo "$REPO_NAME" | awk -F/ '{print tolower($2)}')"
+            IMAGE_REPO="paxarisdocker/$(echo "$REPO_NAME" | awk -F/ '{print tolower($2)}')"
           fi
           echo "image_repo=$IMAGE_REPO" >> "$GITHUB_OUTPUT"
 
@@ -156,27 +156,27 @@ jobs:
           case "$REPO_FULL" in
             paxaris-global/api-gateway)
               DEPLOYMENT_FILE="k8/api-gateway-deployment.yaml"
-              TARGET_IMAGE="devopspaxarisglobalrepo/apigateway:${IMAGE_SHA}"
+              TARGET_IMAGE="paxarisdocker/apigateway:${IMAGE_SHA}"
               ;;
             paxaris-global/identity_service|paxaris-global/identity-service)
               DEPLOYMENT_FILE="k8/identity-service-deployment.yaml"
-              TARGET_IMAGE="devopspaxarisglobalrepo/identity-service:${IMAGE_SHA}"
+              TARGET_IMAGE="paxarisdocker/identity-service:${IMAGE_SHA}"
               ;;
             paxaris-global/product-management-service)
               DEPLOYMENT_FILE="k8/product-management-service-deployment.yaml"
-              TARGET_IMAGE="devopspaxarisglobalrepo/product-management-service:${IMAGE_SHA}"
+              TARGET_IMAGE="paxarisdocker/product-management-service:${IMAGE_SHA}"
               ;;
             paxaris-global/paxo_frontend)
               DEPLOYMENT_FILE="k8/paxo-frontend-deployment.yaml"
-              TARGET_IMAGE="devopspaxarisglobalrepo/paxo_frontend:${IMAGE_SHA}"
+              TARGET_IMAGE="paxarisdocker/paxo_frontend:${IMAGE_SHA}"
               ;;
             paxaris-global/python_foundry_frontend)
               DEPLOYMENT_FILE="k8/python-frontend-deployment.yaml"
-              TARGET_IMAGE="devopspaxarisglobalrepo/python_foundry_frontend:${IMAGE_SHA}"
+              TARGET_IMAGE="paxarisdocker/python_foundry_frontend:${IMAGE_SHA}"
               ;;
             paxaris-global/python_foundry)
               DEPLOYMENT_FILE="k8/python-foundry-stack.yaml"
-              TARGET_IMAGE="devopspaxarisglobalrepo/python_foundry:${IMAGE_SHA}"
+              TARGET_IMAGE="paxarisdocker/python_foundry:${IMAGE_SHA}"
               ;;
             *)
               echo "No GitOps deployment mapping configured for $REPO_FULL."
@@ -189,7 +189,7 @@ jobs:
 
           if [ "$REPO_FULL" = "paxaris-global/python_foundry" ]; then
             # Update both API and worker container images in the stack file.
-            sed -i "s|^\([[:space:]]*image:[[:space:]]*\\)\"*devopspaxarisglobalrepo/python_foundry:[^\"]*\"*|\\1\"${TARGET_IMAGE}\"|" "$DEPLOYMENT_FILE"
+            sed -i "s|^\([[:space:]]*image:[[:space:]]*\\)\"*paxarisdocker/python_foundry:[^\"]*\"*|\\1\"${TARGET_IMAGE}\"|" "$DEPLOYMENT_FILE"
           else
             sed -i "s|^\([[:space:]]*image:[[:space:]]*\).*|\1${TARGET_IMAGE}|" "$DEPLOYMENT_FILE"
           fi
