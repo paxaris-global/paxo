@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: testme-admin-ecomerce-frontend
   annotations:
-    argocd-image-updater.argoproj.io/image-list: "app=devopspaxarisglobalrepo/testme-admin-ecomerce-frontend"
+    argocd-image-updater.argoproj.io/image-list: "app=paxarisdocker/testme-admin-ecomerce-frontend"
     argocd-image-updater.argoproj.io/app.update-strategy: latest
 spec:
   replicas: 1
@@ -19,7 +19,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: testme-admin-ecomerce-frontend
-          image: "devopspaxarisglobalrepo/testme-admin-ecomerce-frontend:latest"
+          image: "paxarisdocker/testme-admin-ecomerce-frontend:latest"
           imagePullPolicy: Always
           ports:
             - containerPort: 80

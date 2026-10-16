@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: testme-admin-ecomerce-backend
   annotations:
-    argocd-image-updater.argoproj.io/image-list: "app=devopspaxarisglobalrepo/testme-admin-ecomerce-backend"
+    argocd-image-updater.argoproj.io/image-list: "app=paxarisdocker/testme-admin-ecomerce-backend"
     argocd-image-updater.argoproj.io/app.update-strategy: latest
 spec:
   replicas: 1
@@ -26,7 +26,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: testme-admin-ecomerce-backend
-          image: "devopspaxarisglobalrepo/testme-admin-ecomerce-backend:latest"
+          image: "paxarisdocker/testme-admin-ecomerce-backend:latest"
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
