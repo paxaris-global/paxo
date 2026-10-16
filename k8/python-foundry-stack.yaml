@@ -149,7 +149,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: api
-          image: "paxarisdocker/python_foundry:a1258f663f757179292841703a85462b55d23272"
+          image: "paxarisdocker/python_foundry:509563c50b988b547b822d7377f25c6cae97dc8b"
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -205,7 +205,7 @@ spec:
         - name: dockerhub-secret
       containers:
         - name: worker
-          image: "paxarisdocker/python_foundry:a1258f663f757179292841703a85462b55d23272"
+          image: "paxarisdocker/python_foundry:509563c50b988b547b822d7377f25c6cae97dc8b"
           imagePullPolicy: Always
           command:
             - celery
