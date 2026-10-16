@@ -35,10 +35,15 @@ start_java() {
   shift 2
   local pid_file="$RUNTIME_DIR/${name}-local.pid"
   local log_file="$RUNTIME_DIR/${name}-local.log"
+  if [[ ! -f "$jar" ]]; then
+    echo "Error: jar not found for $name: $jar" >&2
+    return 1
+  fi
   if [[ -f "$pid_file" ]] && kill -0 "$(cat "$pid_file")" >/dev/null 2>&1; then
     echo "$name already running pid=$(cat "$pid_file")"
     return 0
   fi
+  rm -f "$pid_file"
   nohup env "$@" java -jar "$jar" >"$log_file" 2>&1 < /dev/null &
   echo $! >"$pid_file"
   disown $! 2>/dev/null || true
@@ -68,8 +73,12 @@ DOCKER_USERNAME_VALUE="${DOCKER_USERNAME:-placeholder}"
 DOCKER_PASSWORD_VALUE="${DOCKER_PASSWORD:-placeholder}"
 
 echo "==> Java services"
+# Prefer underscore jar name from Maven; fall back to hyphenated artifact if present.
+PRODUCT_JAR="$REPOS_DIR/product-management-service/target/product_management_service-0.0.1-SNAPSHOT.jar"
+[[ -f "$PRODUCT_JAR" ]] || PRODUCT_JAR="$REPOS_DIR/product-management-service/target/product-management-service-0.0.1-SNAPSHOT.jar"
+
 start_java product \
-  "$REPOS_DIR/product-management-service/target/product_management_service-0.0.1-SNAPSHOT.jar" \
+  "$PRODUCT_JAR" \
   SPRING_DATASOURCE_URL='jdbc:mysql://127.0.0.1:3307/centralized_data?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false' \
   SPRING_DATASOURCE_USERNAME=root \
   SPRING_DATASOURCE_PASSWORD=root \
@@ -79,12 +88,16 @@ start_java product \
   DOCKER_PASSWORD="$DOCKER_PASSWORD_VALUE" \
   SHOWCASE_PLAYWRIGHT_ENABLED=false \
   CATALOG_SYNC_KUBERNETES_ENABLED=false \
+  OTEL_SDK_DISABLED="${OTEL_SDK_DISABLED:-false}" \
   OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318/v1/traces \
   PROVISIONING_BROWSER_HOST=127.0.0.1 \
   PROVISIONING_PAXO_PUBLIC_BASE_URL=http://127.0.0.1:4300
 
 start_java identity \
   "$REPOS_DIR/identity_service/target/identity_service-0.0.1-SNAPSHOT.jar" \
+  SPRING_DATASOURCE_URL='jdbc:mysql://127.0.0.1:3307/identity_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false' \
+  SPRING_DATASOURCE_USERNAME=root \
+  SPRING_DATASOURCE_PASSWORD=root \
   KEYCLOAK_BASE_URL=http://127.0.0.1:8080 \
   KEYCLOAK_REALM=master \
   KEYCLOAK_ADMIN=admin \
@@ -92,6 +105,7 @@ start_java identity \
   PROJECT_MANAGER_URL=http://127.0.0.1:8088 \
   IDENTITY_JWT_ISSUER_HOST_REWRITE_FROM=localhost \
   IDENTITY_JWT_ISSUER_HOST_REWRITE_TO=127.0.0.1 \
+  OTEL_SDK_DISABLED="${OTEL_SDK_DISABLED:-false}" \
   OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318/v1/traces \
   DOCKER_USERNAME="$DOCKER_USERNAME_VALUE" \
   DOCKER_PASSWORD="$DOCKER_PASSWORD_VALUE" \
@@ -103,6 +117,7 @@ start_java gateway \
   KEYCLOAK_BASE_URL=http://127.0.0.1:8080 \
   IDENTITY_SERVICE_URL=http://127.0.0.1:8087 \
   PROJECT_MANAGEMENT_BASE_URL=http://127.0.0.1:8088 \
+  OTEL_SDK_DISABLED="${OTEL_SDK_DISABLED:-false}" \
   OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318/v1/traces
 
 echo "==> Frontend (ng serve :4300)"
