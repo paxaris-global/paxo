@@ -23,7 +23,7 @@ spec:
             - name: KEYCLOAK_ADMIN_PASSWORD
               value: "admin@123"
             - name: JAVA_OPTS_KC_HEAP
-              value: "-Xms256m -Xmx512m"
+              value: "-Xms512m -Xmx1024m"
             - name: KC_HOSTNAME
               value: "localhost"
             - name: KC_HOSTNAME_STRICT
@@ -44,9 +44,9 @@ spec:
               value: "com.mysql.cj.jdbc.Driver"
           resources:
             requests:
-              memory: 512Mi
+              memory: 768Mi
             limits:
-              memory: 1Gi
+              memory: 1536Mi
           ports:
             - containerPort: 8080
           volumeMounts:
