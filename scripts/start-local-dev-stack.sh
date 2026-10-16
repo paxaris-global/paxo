@@ -48,7 +48,11 @@ start_java() {
 echo "==> Port-forwards (cluster infra)"
 start_pf mysql svc/mysql 3307:3306 3307
 start_pf keycloak svc/keycloak 8080:8080 8080
-start_pf jaeger-otlp svc/jaeger 4318:4318 4318
+# Jaeger is optional locally (OTEL can be disabled); do not fail the whole stack if it is scaled down.
+if ! start_pf jaeger-otlp svc/jaeger 4318:4318 4318; then
+  echo "Warning: Jaeger OTLP port-forward unavailable; continuing with OTEL_SDK_DISABLED=true"
+  export OTEL_SDK_DISABLED=true
+fi
 
 # Load secrets from paxo/.env when present (GITHUB_TOKEN, DOCKER_*, GITHUB_ORG)
 if [[ -f "$ROOT_DIR/.env" ]]; then
