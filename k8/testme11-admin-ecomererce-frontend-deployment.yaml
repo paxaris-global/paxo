@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: testme11-admin-ecomererce-frontend
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: "app=paxarisdocker/testme11-admin-ecomererce-frontend"
+    argocd-image-updater.argoproj.io/app.update-strategy: latest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: testme11-admin-ecomererce-frontend
+  template:
+    metadata:
+      labels:
+        app: testme11-admin-ecomererce-frontend
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
+      containers:
+        - name: testme11-admin-ecomererce-frontend
+          image: "paxarisdocker/testme11-admin-ecomererce-frontend:latest"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: testme11-admin-ecomererce-frontend
+spec:
+  selector:
+    app: testme11-admin-ecomererce-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 32101
+  type: NodePort
