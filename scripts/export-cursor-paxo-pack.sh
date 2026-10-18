@@ -27,6 +27,10 @@ cp "$(cd "$(dirname "$0")/.." && pwd)/docs/paxo-hybrid-local/"* "$TMP/skills/pax
 cat > "$TMP/USER_RULES.md" <<'RULES'
 # Paste into Cursor Settings → Rules (new account)
 
+## Timeline
+- Through 23 Oct 2026 work may still be on the previous Mac; from 24 Oct use this account/machine as primary.
+- Always prefer git + paxo-hybrid-local skill over chat memory.
+
 ## Clear and concise
 - Simple language, short bullets, lead with the answer
 - Skip filler; expand only when asked
@@ -47,6 +51,8 @@ RULES
 cat > "$TMP/README_IMPORT.md" <<'IMP'
 # Import on new Cursor account / machine
 
+Cutover target: on/after 24 Oct 2026 (work on previous system through 23 Oct).
+
 1. Unzip this archive.
 2. Copy `skills/paxo-hybrid-local` → `~/.cursor/skills/paxo-hybrid-local`
 3. Open Cursor Settings → Rules and paste `USER_RULES.md`
@@ -54,8 +60,16 @@ cat > "$TMP/README_IMPORT.md" <<'IMP'
 5. Open workspace folder `paxaris-repos`
 6. Optional: copy skills into `paxaris-repos/.cursor/skills/`
 7. Run: `bash paxo/scripts/start-hybrid-stack.sh`
-8. First chat: ask agent to follow paxo-hybrid-local skill
+8. First chat: ask agent to follow paxo-hybrid-local skill + CURSOR_ACCOUNT_TRANSFER.md
 IMP
+
+cat > "$TMP/TIMELINE.md" <<'TL'
+# Working timeline
+
+- Through 23 Oct 2026: primary work on the previous Mac/Cursor account.
+- From 24 Oct 2026: primary work on the new account/machine after import.
+- Durable knowledge: git commits + paxo-hybrid-local skill (not chat history).
+TL
 
 mkdir -p "$(dirname "$OUT")"
 rm -f "$OUT"

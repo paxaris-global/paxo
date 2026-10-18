@@ -1,4 +1,11 @@
-# Hybrid local setup (new machine)
+# Hybrid local setup
+
+## Timeline
+
+| When | Where | What |
+|------|--------|------|
+| **Through 23 Oct 2026** | This Mac | Daily hybrid work; keep committing; re-run export zip if skills/docs change |
+| **24 Oct 2026 onward** | New Cursor account / machine | Pull git, import zip/skills, follow `CURSOR_ACCOUNT_TRANSFER.md` |
 
 ## Prerequisites
 

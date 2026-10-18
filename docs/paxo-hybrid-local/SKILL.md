@@ -10,6 +10,13 @@ description: >-
 
 # Paxo hybrid local
 
+## Working window (this machine)
+
+- **Stay on this Mac / Cursor account through 23 Oct 2026** for daily hybrid work.
+- Treat git + this skill as source of truth; commit hybrid fixes as they land.
+- **On/after 24 Oct 2026**: move via `CURSOR_ACCOUNT_TRANSFER.md` + Desktop zip from `export-cursor-paxo-pack.sh` (push all repos first).
+- Until cutover: prefer `bash paxo/scripts/start-hybrid-stack.sh` each day; do not put core into Argo.
+
 ## Architecture (do not collapse)
 
 | Layer | Runs | Apps |
