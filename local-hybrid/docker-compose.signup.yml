@@ -1,0 +1,187 @@
+# Self-contained Create Realm backends (no Minikube required).
+#   docker compose -f paxo/local-hybrid/docker-compose.signup.yml up -d
+name: paxo-signup
+
+x-restart: &restart
+  restart: unless-stopped
+
+services:
+  mysql:
+    <<: *restart
+    image: mysql:8.0
+    container_name: paxo-signup-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - paxo_signup_mysql:/var/lib/mysql
+    command: ["--default-authentication-plugin=mysql_native_password", "--character-set-server=utf8mb4"]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 40s
+
+  mysql-init:
+    image: mysql:8.0
+    depends_on:
+      mysql: {condition: service_healthy}
+    entrypoint: ["bash", "-c"]
+    command:
+      - >-
+        mysql -h mysql -uroot -proot -e
+        "CREATE DATABASE IF NOT EXISTS keycloak_db;
+         CREATE DATABASE IF NOT EXISTS identity_service;
+         CREATE DATABASE IF NOT EXISTS centralized_data;"
+    restart: "no"
+
+  keycloak:
+    <<: *restart
+    image: quay.io/keycloak/keycloak:26.2.0
+    container_name: paxo-signup-keycloak
+    depends_on:
+      mysql: {condition: service_healthy}
+      mysql-init: {condition: service_completed_successfully}
+    command: ["start-dev", "--http-relative-path=/"]
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: "admin@123"
+      KC_DB: mysql
+      KC_DB_URL: "jdbc:mysql://mysql:3306/keycloak_db"
+      KC_DB_USERNAME: root
+      KC_DB_PASSWORD: root
+      KC_DB_DRIVER: com.mysql.cj.jdbc.Driver
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_STRICT: "false"
+      JAVA_OPTS_KC_HEAP: "-Xms256m -Xmx768m"
+    # identity JWT decoder rewrites issuer host localhost → keycloak-server
+    networks:
+      default:
+        aliases: [keycloak-server]
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080 || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 36
+      start_period: 90s
+
+  identity:
+    <<: *restart
+    image: eclipse-temurin:21-jre
+    container_name: paxo-signup-identity
+    depends_on:
+      keycloak: {condition: service_healthy}
+    volumes:
+      - ../../identity_service/target/identity_service-0.0.1-SNAPSHOT.jar:/app/app.jar:ro
+    command: ["java", "-Xms256m", "-Xmx512m", "-jar", "/app/app.jar"]
+    environment:
+      OTEL_SDK_DISABLED: "true"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/identity_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      KEYCLOAK_BASE_URL: http://keycloak:8080
+      KEYCLOAK_REALM: master
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: "admin@123"
+      PROJECT_MANAGER_URL: http://product-management:8088
+      # Tokens issue as http://localhost:8080/...; fetch JWKS via compose alias
+      IDENTITY_JWT_ISSUER_HOST_REWRITE_FROM: localhost
+      IDENTITY_JWT_ISSUER_HOST_REWRITE_TO: keycloak-server
+    ports:
+      - "8087:8087"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8087'"]
+      interval: 10s
+      timeout: 5s
+      retries: 36
+      start_period: 60s
+
+  product-management:
+    <<: *restart
+    image: eclipse-temurin:21-jre
+    container_name: paxo-signup-product
+    depends_on:
+      mysql: {condition: service_healthy}
+      mysql-init: {condition: service_completed_successfully}
+    env_file:
+      - ../.env
+    # Hybrid: readiness checks call kubectl against Minikube's host-published API.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../../product-management-service/target/product_management_service-0.0.1-SNAPSHOT.jar:/app/app.jar:ro
+      - ${HOME}/.kube/config:/tmp/kubeconfig.host:ro
+      # kubeconfig references host absolute cert paths under ~/.minikube
+      - ${HOME}/.minikube:${HOME}/.minikube:ro
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -euo pipefail
+        arch="$(uname -m)"
+        case "$$arch" in aarch64|arm64) karch=arm64 ;; *) karch=amd64 ;; esac
+        if [[ ! -x /usr/local/bin/kubectl ]]; then
+          curl -fsSL -o /usr/local/bin/kubectl \
+            "https://dl.k8s.io/release/v1.34.0/bin/linux/$${karch}/kubectl"
+          chmod +x /usr/local/bin/kubectl
+        fi
+        mkdir -p /root/.kube
+        cp /tmp/kubeconfig.host /root/.kube/config
+        # Host-published Minikube API; cert SANs omit host.docker.internal so skip TLS verify.
+        sed -i 's|https://127.0.0.1:|https://host.docker.internal:|g' /root/.kube/config
+        kubectl config set-cluster minikube --insecure-skip-tls-verify=true --kubeconfig=/root/.kube/config >/dev/null
+        export KUBECONFIG=/root/.kube/config
+        exec java -Xms256m -Xmx512m -jar /app/app.jar
+    environment:
+      OTEL_SDK_DISABLED: "true"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/centralized_data?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SERVER_PORT: "8088"
+      SHOWCASE_PLAYWRIGHT_ENABLED: "false"
+      PROVISIONING_EXTERNAL_HOST: "auto"
+      PROVISIONING_BROWSER_HOST: "127.0.0.1"
+      # nodeport: Open Product → http://127.0.0.1:{NodePort}/ (port-forward only).
+      # proxy needs ng serve on :4300 for /product-ui/... and dies if that process exits.
+      PROVISIONING_BROWSER_URL_MODE: "nodeport"
+      PROVISIONING_PAXO_PUBLIC_BASE_URL: "http://127.0.0.1:4300"
+      KUBECONFIG: /root/.kube/config
+    ports:
+      - "8088:8088"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8088'"]
+      interval: 10s
+      timeout: 5s
+      retries: 48
+      start_period: 120s
+
+  gateway:
+    <<: *restart
+    image: eclipse-temurin:21-jre
+    container_name: paxo-signup-gateway
+    depends_on:
+      identity: {condition: service_healthy}
+      product-management: {condition: service_healthy}
+    volumes:
+      - ../../api-gateway/target/api-gateway-0.0.1-SNAPSHOT.jar:/app/app.jar:ro
+    command: ["java", "-Xms128m", "-Xmx384m", "-jar", "/app/app.jar"]
+    environment:
+      OTEL_SDK_DISABLED: "true"
+      KEYCLOAK_BASE_URL: http://keycloak:8080
+      IDENTITY_SERVICE_URL: http://identity:8087
+      PROJECT_MANAGEMENT_BASE_URL: http://product-management:8088
+    ports:
+      - "8085:8085"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8085'"]
+      interval: 10s
+      timeout: 5s
+      retries: 36
+      start_period: 60s
+
+volumes:
+  paxo_signup_mysql:
