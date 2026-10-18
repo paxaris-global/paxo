@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: setmeup-admin-ecomerence23-backend
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: "app=paxarisdocker/setmeup-admin-ecomerence23-backend"
+    argocd-image-updater.argoproj.io/app.update-strategy: latest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: setmeup-admin-ecomerence23-backend
+  template:
+    metadata:
+      labels:
+        app: setmeup-admin-ecomerence23-backend
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - until pg_isready -h setmeup-admin-ecomerence23-backend-postgres -p 5432 -U app_user; do echo waiting for postgres; sleep 2; done
+      imagePullSecrets:
+        - name: dockerhub-secret
+      containers:
+        - name: setmeup-admin-ecomerence23-backend
+          image: "paxarisdocker/setmeup-admin-ecomerence23-backend:latest"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: DB_URL
+              value: jdbc:postgresql://setmeup-admin-ecomerence23-backend-postgres:5432/app
+            - name: DB_USERNAME
+              value: app_user
+            - name: DB_PASSWORD
+              value: app_password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: setmeup-admin-ecomerence23-backend
+spec:
+  selector:
+    app: setmeup-admin-ecomerence23-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 32400
+  type: NodePort
