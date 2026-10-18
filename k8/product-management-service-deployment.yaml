@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: product-management-service
-          image: paxarisdocker/product-management-service:d53a77bf1e634f56cc79ba6abfe486d01b43af39
+          image: paxarisdocker/product-management-service:c57a18b565a6c43d8993a3bd3fd4f1691d67cc74
           imagePullPolicy: Always
           ports:
             - containerPort: 8088
