@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: believer-admin-believer-frontend
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: "app=paxarisdocker/believer-admin-believer-frontend"
+    argocd-image-updater.argoproj.io/app.update-strategy: latest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: believer-admin-believer-frontend
+  template:
+    metadata:
+      labels:
+        app: believer-admin-believer-frontend
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
+      containers:
+        - name: believer-admin-believer-frontend
+          image: "paxarisdocker/believer-admin-believer-frontend:latest"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: believer-admin-believer-frontend
+spec:
+  selector:
+    app: believer-admin-believer-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 32102
+  type: NodePort
